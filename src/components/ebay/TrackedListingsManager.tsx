@@ -1,18 +1,56 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { TrackedListing } from "@/types/ebay";
+import { useAuth } from "@/hooks/useAuth";
 
 export const TrackedListingsManager = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [listings, setListings] = useState<TrackedListing[]>([]);
   const [newItemId, setNewItemId] = useState("");
 
+  useEffect(() => {
+    if (user) {
+      loadListings();
+    }
+  }, [user]);
+
+  const loadListings = async () => {
+    if (!user?.id) return;
+    
+    const { data, error } = await supabase
+      .from("ebay_tracked_listings")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load tracked listings",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setListings(data || []);
+  };
+
   const addListing = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add listings",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!newItemId) {
       toast({
         title: "Error",
@@ -27,13 +65,14 @@ export const TrackedListingsManager = () => {
         .from("ebay_tracked_listings")
         .insert({
           ebay_item_id: newItemId,
+          user_id: user.id
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setListings([...listings, data]);
+      setListings([data, ...listings]);
       setNewItemId("");
       
       toast({
@@ -50,11 +89,14 @@ export const TrackedListingsManager = () => {
   };
 
   const deleteListing = async (id: string) => {
+    if (!user?.id) return;
+
     try {
       const { error } = await supabase
         .from("ebay_tracked_listings")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
 

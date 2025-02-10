@@ -1,18 +1,56 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { ColumnMapping } from "@/types/ebay";
+import { useAuth } from "@/hooks/useAuth";
 
 export const ColumnMappingsManager = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
   const [newMapping, setNewMapping] = useState({ name: "", position: "" });
 
+  useEffect(() => {
+    if (user) {
+      loadMappings();
+    }
+  }, [user]);
+
+  const loadMappings = async () => {
+    if (!user?.id) return;
+    
+    const { data, error } = await supabase
+      .from("ebay_column_mappings")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("column_position", { ascending: true });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load column mappings",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMappings(data || []);
+  };
+
   const addMapping = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add mappings",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!newMapping.name || !newMapping.position) {
       toast({
         title: "Error",
@@ -28,6 +66,7 @@ export const ColumnMappingsManager = () => {
         .insert({
           column_name: newMapping.name,
           column_position: parseInt(newMapping.position),
+          user_id: user.id
         })
         .select()
         .single();
@@ -51,11 +90,14 @@ export const ColumnMappingsManager = () => {
   };
 
   const deleteMapping = async (id: string) => {
+    if (!user?.id) return;
+
     try {
       const { error } = await supabase
         .from("ebay_column_mappings")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
