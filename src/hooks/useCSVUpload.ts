@@ -17,6 +17,16 @@ export const useCSVUpload = (userId: string | undefined) => {
   const [isUploading, setIsUploading] = useState(false);
 
   const processCSV = async (file: File) => {
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to upload files",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
     try {
       setIsUploading(true);
       const text = await file.text();
@@ -34,10 +44,6 @@ export const useCSVUpload = (userId: string | undefined) => {
       setPreviewData([headers, ...rows.slice(1, 6)]); 
       const metrics = processCSVData(rows);
       setProcessedData(metrics);
-      
-      if (!userId) {
-        throw new Error('User not authenticated');
-      }
 
       // Insert the processed data into Supabase
       const { error } = await supabase
