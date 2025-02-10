@@ -33,35 +33,7 @@ const Dashboard = () => {
           throw error;
         }
 
-        // Map database data to frontend model
-        const mappedData: ListingMetrics[] = (listings || []).map(listing => ({
-          itemId: listing.item_id,
-          listingTitle: listing.listing_title,
-          promotedStatus: listing.promoted_status || '',
-          totalImpressions: listing.total_impressions || 0,
-          organicImpressions: listing.organic_impressions || 0,
-          promotedImpressions: listing.promoted_impressions || 0,
-          clickThroughRate: listing.click_through_rate || 0,
-          quantitySold: listing.quantity_sold || 0,
-          salesConversionRate: listing.sales_conversion_rate || 0,
-          top20SearchSlotImpressions: listing.top20_search_slot_impressions || 0,
-          top20SearchSlotImpressionsChange: listing.top20_search_slot_impressions_change || 0,
-          top20OrganicSearchSlotImpressions: listing.top20_organic_search_slot_impressions || 0,
-          top20OrganicSearchSlotImpressionsChange: listing.top20_organic_search_slot_impressions_change || 0,
-          restSearchSlotImpressions: listing.rest_search_slot_impressions || 0,
-          nonSearchPromotedImpressions: listing.non_search_promoted_impressions || 0,
-          nonSearchPromotedImpressionsChange: listing.non_search_promoted_impressions_change || 0,
-          nonSearchOrganicImpressions: listing.non_search_organic_impressions || 0,
-          nonSearchOrganicImpressionsChange: listing.non_search_organic_impressions_change || 0,
-          totalPageViews: listing.total_page_views || 0,
-          pageViewsPromoted: listing.page_views_promoted || 0,
-          pageViewsPromotedExternal: listing.page_views_promoted_external || 0,
-          pageViewsOrganic: listing.page_views_organic || 0,
-          pageViewsOrganicExternal: listing.page_views_organic_external || 0,
-          importDate: new Date().toISOString(), // Using current date as import date
-        }));
-
-        setData(mappedData);
+        setData(listings || []);
       } catch (error) {
         console.error('Error fetching listings:', error);
       } finally {
@@ -75,33 +47,33 @@ const Dashboard = () => {
   // Calculate averages for KPI cards
   const calculateAverages = () => {
     if (!data.length) return { 
-      avgCTR: 0, 
-      avgConversion: 0, 
-      totalImpressions: 0,
-      totalPageViews: 0,
-      totalSales: 0,
-      organicImpressions: 0,
-      promotedImpressions: 0
+      avg_ctr: 0, 
+      avg_conversion: 0, 
+      total_impressions: 0,
+      total_page_views: 0,
+      total_sales: 0,
+      organic_impressions: 0,
+      promoted_impressions: 0
     };
     
     return data.reduce(
       (acc, item) => ({
-        avgCTR: acc.avgCTR + item.clickThroughRate,
-        avgConversion: acc.avgConversion + item.salesConversionRate,
-        totalImpressions: acc.totalImpressions + item.totalImpressions,
-        totalPageViews: acc.totalPageViews + item.totalPageViews,
-        totalSales: acc.totalSales + item.quantitySold,
-        organicImpressions: acc.organicImpressions + item.organicImpressions,
-        promotedImpressions: acc.promotedImpressions + item.promotedImpressions,
+        avg_ctr: acc.avg_ctr + item.click_through_rate,
+        avg_conversion: acc.avg_conversion + item.sales_conversion_rate,
+        total_impressions: acc.total_impressions + item.total_impressions_ebay,
+        total_page_views: acc.total_page_views + item.total_page_views,
+        total_sales: acc.total_sales + item.quantity_sold,
+        organic_impressions: acc.organic_impressions + item.total_organic_impressions_ebay,
+        promoted_impressions: acc.promoted_impressions + item.total_promoted_listings_impressions,
       }),
       { 
-        avgCTR: 0, 
-        avgConversion: 0, 
-        totalImpressions: 0,
-        totalPageViews: 0,
-        totalSales: 0,
-        organicImpressions: 0,
-        promotedImpressions: 0
+        avg_ctr: 0, 
+        avg_conversion: 0, 
+        total_impressions: 0,
+        total_page_views: 0,
+        total_sales: 0,
+        organic_impressions: 0,
+        promoted_impressions: 0
       }
     );
   };
@@ -112,11 +84,11 @@ const Dashboard = () => {
   const impressionsSplit = [
     {
       name: "Organic",
-      value: averages.organicImpressions,
+      value: averages.organic_impressions,
     },
     {
       name: "Promoted",
-      value: averages.promotedImpressions,
+      value: averages.promoted_impressions,
     },
   ];
 
@@ -139,25 +111,25 @@ const Dashboard = () => {
         <Card className="p-6">
           <h3 className="text-sm font-medium text-gray-500">Avg Click-Through Rate</h3>
           <p className="text-2xl font-bold">
-            {(averages.avgCTR / (data.length || 1)).toFixed(2)}%
+            {(averages.avg_ctr / (data.length || 1)).toFixed(2)}%
           </p>
         </Card>
         <Card className="p-6">
           <h3 className="text-sm font-medium text-gray-500">Avg Conversion Rate</h3>
           <p className="text-2xl font-bold">
-            {(averages.avgConversion / (data.length || 1)).toFixed(2)}%
+            {(averages.avg_conversion / (data.length || 1)).toFixed(2)}%
           </p>
         </Card>
         <Card className="p-6">
           <h3 className="text-sm font-medium text-gray-500">Total Page Views</h3>
           <p className="text-2xl font-bold">
-            {averages.totalPageViews.toLocaleString()}
+            {averages.total_page_views.toLocaleString()}
           </p>
         </Card>
         <Card className="p-6">
           <h3 className="text-sm font-medium text-gray-500">Total Sales</h3>
           <p className="text-2xl font-bold">
-            {averages.totalSales.toLocaleString()}
+            {averages.total_sales.toLocaleString()}
           </p>
         </Card>
       </div>
@@ -179,14 +151,14 @@ const Dashboard = () => {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                  dataKey="listingTitle"
+                  dataKey="listing_title"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                 />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="totalImpressions" fill="#3b82f6" />
+                <Bar dataKey="total_impressions_ebay" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -232,7 +204,7 @@ const Dashboard = () => {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                  dataKey="listingTitle"
+                  dataKey="listing_title"
                   angle={-45}
                   textAnchor="end"
                   height={80}
@@ -241,7 +213,7 @@ const Dashboard = () => {
                 <Tooltip />
                 <Line
                   type="monotone"
-                  dataKey="clickThroughRate"
+                  dataKey="click_through_rate"
                   stroke="#10b981"
                   strokeWidth={2}
                 />
