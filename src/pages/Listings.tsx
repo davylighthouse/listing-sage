@@ -91,7 +91,6 @@ const ListingsPage = () => {
         ))}
       </div>
     </div>
-  </div>
   );
 };
 
