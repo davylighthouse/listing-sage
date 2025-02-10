@@ -2,11 +2,13 @@
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
+  // Remove any non-numeric characters except decimal point and minus sign
   const cleaned = value.replace(/[^0-9.-]/g, '');
   return cleaned ? parseFloat(cleaned) : 0;
 };
 
 const cleanPercentage = (value: string): number => {
+  // Remove any non-numeric characters except decimal point and minus sign
   const cleaned = value.replace(/[^0-9.-]/g, '');
   return cleaned ? parseFloat(cleaned) / 100 : 0;
 };
@@ -68,3 +70,4 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
 
   return metrics;
 };
+
