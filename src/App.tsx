@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Upload from "./pages/Upload";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,14 +22,33 @@ const App = () => (
             path="/"
             element={
               <Layout>
-                <div className="text-center py-12">
+                <div className="max-w-4xl mx-auto text-center py-12">
                   <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    Welcome to eBay Analytics
+                    eBay Analytics Dashboard
                   </h1>
-                  <p className="text-gray-600 max-w-2xl mx-auto">
-                    Get started by uploading your eBay listing data through the
-                    Upload page
+                  <p className="text-gray-600 mb-8">
+                    Upload your eBay listing data and gain valuable insights to optimize your performance
                   </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                    <a
+                      href="/upload"
+                      className="p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+                    >
+                      <h2 className="text-xl font-semibold mb-2">Upload Data</h2>
+                      <p className="text-gray-600">
+                        Import your eBay listing data via CSV
+                      </p>
+                    </a>
+                    <a
+                      href="/dashboard"
+                      className="p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+                    >
+                      <h2 className="text-xl font-semibold mb-2">Dashboard</h2>
+                      <p className="text-gray-600">
+                        View insights and performance metrics
+                      </p>
+                    </a>
+                  </div>
                 </div>
               </Layout>
             }
@@ -38,6 +58,14 @@ const App = () => (
             element={
               <Layout>
                 <Upload />
+              </Layout>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <Layout>
+                <Dashboard />
               </Layout>
             }
           />

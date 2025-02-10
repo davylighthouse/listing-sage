@@ -4,9 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload } from "lucide-react";
 import { ListingMetrics } from "@/types/listing";
 import { processCSVData } from "@/utils/csvProcessor";
+import { useNavigate } from "react-router-dom";
 
 const UploadPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<string[][]>([]);
@@ -26,12 +28,20 @@ const UploadPage = () => {
       const metrics = processCSVData(validData);
       setProcessedData(metrics);
       
-      console.log('Processed metrics:', metrics); // For debugging
+      // Store in localStorage
+      localStorage.setItem('ebayData', JSON.stringify(metrics));
+      
+      console.log('Processed metrics:', metrics);
 
       toast({
         title: "File processed",
-        description: `Successfully processed ${metrics.length} listings`,
+        description: `Successfully processed ${metrics.length} listings. Redirecting to dashboard...`,
       });
+
+      // Redirect to dashboard after 2 seconds
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } catch (error) {
       console.error('CSV Processing error:', error);
       toast({
