@@ -2,30 +2,41 @@
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Upload } from "lucide-react";
+import { ListingMetrics } from "@/types/listing";
+import { processCSVData } from "@/utils/csvProcessor";
 
 const UploadPage = () => {
   const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<string[][]>([]);
+  const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
 
   const processCSV = async (file: File) => {
     try {
       const text = await file.text();
       const rows = text.split('\n').map(row => row.split(','));
       const headers = rows[0];
-      const validData = rows.slice(1).filter(row => row.length === headers.length);
+      const validData = rows.filter(row => row.length === headers.length);
       
-      setPreviewData([headers, ...validData.slice(0, 5)]); // Show first 5 rows
+      // Show preview data
+      setPreviewData([headers, ...validData.slice(0, 5)]); 
       
+      // Process full dataset
+      const metrics = processCSVData(validData);
+      setProcessedData(metrics);
+      
+      console.log('Processed metrics:', metrics); // For debugging
+
       toast({
         title: "File processed",
-        description: `Successfully processed ${validData.length} rows of data`,
+        description: `Successfully processed ${metrics.length} listings`,
       });
     } catch (error) {
+      console.error('CSV Processing error:', error);
       toast({
         title: "Error processing file",
-        description: "Failed to parse CSV file",
+        description: "Failed to parse CSV file. Please ensure it matches the expected format.",
         variant: "destructive",
       });
     }
@@ -115,6 +126,9 @@ const UploadPage = () => {
         <div className="mt-6 p-4 bg-white rounded-lg border animate-fade-in">
           <h3 className="font-medium text-gray-900">Selected file</h3>
           <p className="mt-1 text-gray-500">{file.name}</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Processed {processedData.length} listings
+          </p>
         </div>
       )}
 
@@ -138,7 +152,10 @@ const UploadPage = () => {
               {previewData.slice(1).map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
-                    <td key={j} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td
+                      key={j}
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                    >
                       {cell}
                     </td>
                   ))}
