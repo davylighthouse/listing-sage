@@ -23,8 +23,13 @@ const UploadPage = () => {
     try {
       setIsUploading(true);
       const text = await file.text();
-      const rows = text.split('\n').map(row => row.split(','));
+      // Split by newline and filter out empty rows
+      const rows = text.split('\n')
+        .filter(row => row.trim() !== '')
+        .map(row => row.split(',').map(cell => cell.trim()));
+      
       const headers = rows[0];
+      // Filter out rows that don't match header length
       const validData = rows.filter(row => row.length === headers.length);
       
       // Show preview data
@@ -34,9 +39,13 @@ const UploadPage = () => {
       const metrics = processCSVData(validData);
       setProcessedData(metrics);
       
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       // Map the data to match database schema
       const dbData = metrics.map(metric => ({
-        user_id: user?.id,
+        user_id: user.id,
         item_id: metric.itemId,
         listing_title: metric.listingTitle,
         promoted_status: metric.promotedStatus,
@@ -73,7 +82,7 @@ const UploadPage = () => {
       }
 
       toast({
-        title: "File processed",
+        title: "Success",
         description: `Successfully processed ${metrics.length} listings. Redirecting to dashboard...`,
       });
 
