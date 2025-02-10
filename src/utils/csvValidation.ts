@@ -28,18 +28,27 @@ export const REQUIRED_HEADERS = [
 ];
 
 export const validateCSVFormat = (headers: string[]): boolean => {
-  if (headers.length !== EXPECTED_COLUMNS) {
-    throw new Error(`Expected ${EXPECTED_COLUMNS} columns but found ${headers.length}. Please ensure you're using the correct CSV template.`);
+  // Instead of requiring exact column count, ensure we have at least the required columns
+  if (headers.length < EXPECTED_COLUMNS) {
+    throw new Error(`CSV must contain at least ${EXPECTED_COLUMNS} columns but only found ${headers.length}. Please ensure you're using the correct CSV template.`);
   }
 
-  // Check all headers match exactly
-  const normalizedHeaders = headers.map(h => h.trim().toLowerCase());
+  // Get the first 24 headers we care about
+  const relevantHeaders = headers.slice(0, EXPECTED_COLUMNS);
+  const normalizedHeaders = relevantHeaders.map(h => h.trim().toLowerCase());
   const normalizedRequired = REQUIRED_HEADERS.map(h => h.toLowerCase());
   
+  // Check that the first 24 columns match our requirements
   for (let i = 0; i < normalizedRequired.length; i++) {
     if (normalizedHeaders[i] !== normalizedRequired[i]) {
-      throw new Error(`Invalid CSV format. Expected column "${REQUIRED_HEADERS[i]}" but found "${headers[i]}"`);
+      throw new Error(`Invalid CSV format. Expected column "${REQUIRED_HEADERS[i]}" but found "${relevantHeaders[i]}"`);
     }
   }
+
+  // If there are additional columns, log a warning but don't fail
+  if (headers.length > EXPECTED_COLUMNS) {
+    console.warn(`CSV contains ${headers.length} columns, but only the first ${EXPECTED_COLUMNS} will be processed`);
+  }
+
   return true;
 };

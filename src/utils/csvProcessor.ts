@@ -19,8 +19,9 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     // Filter out empty values that might come from trailing commas
     const cleanRow = row.filter(cell => cell !== '');
     
-    if (cleanRow.length !== 24) {
-      console.warn('Skipping invalid row with incorrect number of columns:', cleanRow.length, 'columns found');
+    // Instead of requiring exact column count, ensure we have at least the required columns
+    if (cleanRow.length < 24) {
+      console.warn('Skipping row with insufficient columns:', cleanRow.length, 'columns found (minimum 24 required)');
       continue;
     }
 
@@ -57,6 +58,12 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
       console.error('Error processing row:', cleanRow, error);
       continue;
     }
+  }
+
+  if (metrics.length === 0) {
+    console.warn('No valid rows were processed from the CSV file');
+  } else {
+    console.log(`Successfully processed ${metrics.length} rows from CSV`);
   }
 
   return metrics;
