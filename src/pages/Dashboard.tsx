@@ -33,7 +33,35 @@ const Dashboard = () => {
           throw error;
         }
 
-        setData(listings || []);
+        // Map database data to frontend model
+        const mappedData: ListingMetrics[] = (listings || []).map(listing => ({
+          itemId: listing.item_id,
+          listingTitle: listing.listing_title,
+          promotedStatus: listing.promoted_status || '',
+          totalImpressions: listing.total_impressions || 0,
+          organicImpressions: listing.organic_impressions || 0,
+          promotedImpressions: listing.promoted_impressions || 0,
+          clickThroughRate: listing.click_through_rate || 0,
+          quantitySold: listing.quantity_sold || 0,
+          salesConversionRate: listing.sales_conversion_rate || 0,
+          top20SearchSlotImpressions: listing.top20_search_slot_impressions || 0,
+          top20SearchSlotImpressionsChange: listing.top20_search_slot_impressions_change || 0,
+          top20OrganicSearchSlotImpressions: listing.top20_organic_search_slot_impressions || 0,
+          top20OrganicSearchSlotImpressionsChange: listing.top20_organic_search_slot_impressions_change || 0,
+          restSearchSlotImpressions: listing.rest_search_slot_impressions || 0,
+          nonSearchPromotedImpressions: listing.non_search_promoted_impressions || 0,
+          nonSearchPromotedImpressionsChange: listing.non_search_promoted_impressions_change || 0,
+          nonSearchOrganicImpressions: listing.non_search_organic_impressions || 0,
+          nonSearchOrganicImpressionsChange: listing.non_search_organic_impressions_change || 0,
+          totalPageViews: listing.total_page_views || 0,
+          pageViewsPromoted: listing.page_views_promoted || 0,
+          pageViewsPromotedExternal: listing.page_views_promoted_external || 0,
+          pageViewsOrganic: listing.page_views_organic || 0,
+          pageViewsOrganicExternal: listing.page_views_organic_external || 0,
+          importDate: new Date().toISOString(), // Using current date as import date
+        }));
+
+        setData(mappedData);
       } catch (error) {
         console.error('Error fetching listings:', error);
       } finally {

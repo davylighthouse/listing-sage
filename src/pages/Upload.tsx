@@ -33,15 +33,38 @@ const UploadPage = () => {
       const metrics = processCSVData(validData);
       setProcessedData(metrics);
       
+      // Map the data to match database schema
+      const dbData = metrics.map(metric => ({
+        user_id: user?.id,
+        item_id: metric.itemId,
+        listing_title: metric.listingTitle,
+        promoted_status: metric.promotedStatus,
+        total_impressions: metric.totalImpressions,
+        organic_impressions: metric.organicImpressions,
+        promoted_impressions: metric.promotedImpressions,
+        click_through_rate: metric.clickThroughRate,
+        quantity_sold: metric.quantitySold,
+        sales_conversion_rate: metric.salesConversionRate,
+        top20_search_slot_impressions: metric.top20SearchSlotImpressions,
+        top20_search_slot_impressions_change: metric.top20SearchSlotImpressionsChange,
+        top20_organic_search_slot_impressions: metric.top20OrganicSearchSlotImpressions,
+        top20_organic_search_slot_impressions_change: metric.top20OrganicSearchSlotImpressionsChange,
+        rest_search_slot_impressions: metric.restSearchSlotImpressions,
+        non_search_promoted_impressions: metric.nonSearchPromotedImpressions,
+        non_search_promoted_impressions_change: metric.nonSearchPromotedImpressionsChange,
+        non_search_organic_impressions: metric.nonSearchOrganicImpressions,
+        non_search_organic_impressions_change: metric.nonSearchOrganicImpressionsChange,
+        total_page_views: metric.totalPageViews,
+        page_views_promoted: metric.pageViewsPromoted,
+        page_views_promoted_external: metric.pageViewsPromotedExternal,
+        page_views_organic: metric.pageViewsOrganic,
+        page_views_organic_external: metric.pageViewsOrganicExternal
+      }));
+
       // Insert data into Supabase
       const { error } = await supabase
         .from('ebay_listings')
-        .insert(
-          metrics.map(metric => ({
-            ...metric,
-            user_id: user?.id,
-          }))
-        );
+        .insert(dbData);
 
       if (error) {
         console.error('Supabase insertion error:', error);
