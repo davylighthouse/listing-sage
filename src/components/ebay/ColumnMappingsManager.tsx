@@ -110,7 +110,7 @@ export const ColumnMappingsManager = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete column mapping",
+        description: "Failed to remove column mapping",
         variant: "destructive",
       });
     }
