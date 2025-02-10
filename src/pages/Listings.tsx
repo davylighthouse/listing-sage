@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ListingSummary {
   ebay_item_id: string;
@@ -15,16 +16,20 @@ interface ListingSummary {
 
 const ListingsPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: listings, isLoading } = useQuery({
     queryKey: ["listings-summary"],
     queryFn: async () => {
+      console.log("Fetching listings for user:", user?.id);
       const { data, error } = await supabase
         .from("ebay_listings")
         .select("ebay_item_id, listing_title")
+        .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
       if (error) {
+        console.error("Error fetching listings:", error);
         toast({
           title: "Error",
           description: "Failed to load listings",
@@ -32,6 +37,8 @@ const ListingsPage = () => {
         });
         throw error;
       }
+
+      console.log("Fetched listings:", data);
 
       // Group by ebay_item_id and get latest listing_title
       const uniqueListings = data.reduce((acc: Record<string, ListingSummary>, curr) => {
@@ -49,6 +56,7 @@ const ListingsPage = () => {
 
       return Object.values(uniqueListings);
     },
+    enabled: !!user?.id,
   });
 
   if (isLoading) {
@@ -61,11 +69,30 @@ const ListingsPage = () => {
     );
   }
 
+  if (!listings?.length) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold mb-6">eBay Listings Database</h1>
+        <div className="text-center py-8">
+          <p className="text-gray-500 mb-4">No listings found</p>
+          <Button asChild>
+            <Link to="/upload">Upload Listings</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">eBay Listings Database</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">eBay Listings Database</h1>
+        <Button asChild>
+          <Link to="/upload">Upload More Listings</Link>
+        </Button>
+      </div>
       <div className="grid gap-4">
-        {listings?.map((listing) => (
+        {listings.map((listing) => (
           <div
             key={listing.ebay_item_id}
             className="bg-white p-4 rounded-lg border shadow-sm flex items-center justify-between"
