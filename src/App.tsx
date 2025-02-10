@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
+import Listings from "./pages/Listings";
+import ListingDetail from "./pages/ListingDetail";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +67,26 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/listings"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <Listings />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/listings/:itemId"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <ListingDetail />
                 </Layout>
               </AuthGuard>
             }
