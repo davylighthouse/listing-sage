@@ -26,4 +26,12 @@ export const KPICards = ({
       </Card>
       <Card className="p-6">
         <h3 className="text-sm font-medium text-gray-500">Total Page Views</h3>
-        <p className="text-2xl font-bold">{totalPageViews.toLocaleString()}
+        <p className="text-2xl font-bold">{totalPageViews.toLocaleString()}</p>
+      </Card>
+      <Card className="p-6">
+        <h3 className="text-sm font-medium text-gray-500">Total Sales</h3>
+        <p className="text-2xl font-bold">{totalSales.toLocaleString()}</p>
+      </Card>
+    </div>
+  );
+};
