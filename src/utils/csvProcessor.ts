@@ -70,4 +70,3 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
 
   return metrics;
 };
-

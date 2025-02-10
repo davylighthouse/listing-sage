@@ -34,4 +34,3 @@ export interface ProcessedData {
   headers: string[];
   metrics: ListingMetrics[];
 }
-
