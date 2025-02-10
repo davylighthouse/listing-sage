@@ -19,13 +19,14 @@ const ListingsPage = () => {
   const { user } = useAuth();
 
   const { data: listings, isLoading } = useQuery({
-    queryKey: ["listings-summary"],
+    queryKey: ["listings-summary", user?.id],
     queryFn: async () => {
-      console.log("Fetching listings for user:", user?.id);
+      if (!user?.id) throw new Error("User not authenticated");
+
       const { data, error } = await supabase
         .from("ebay_listings")
         .select("ebay_item_id, listing_title")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {

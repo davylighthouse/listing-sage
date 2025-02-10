@@ -1,8 +1,8 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { ListingMetrics } from "@/types/listing";
+import { useAuth } from "@/hooks/useAuth";
 import {
   BarChart,
   Bar,
@@ -21,13 +21,17 @@ import {
 const Dashboard = () => {
   const [data, setData] = useState<ListingMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user?.id) return;
+
       try {
         const { data: listings, error } = await supabase
           .from('ebay_listings')
-          .select('*');
+          .select('*')
+          .eq('user_id', user.id);
 
         if (error) {
           throw error;
@@ -42,9 +46,8 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [user?.id]);
 
-  // Calculate averages for KPI cards
   const calculateAverages = () => {
     if (!data.length) return { 
       avg_ctr: 0, 
@@ -80,7 +83,6 @@ const Dashboard = () => {
 
   const averages = calculateAverages();
   
-  // Prepare data for organic vs promoted pie chart
   const impressionsSplit = [
     {
       name: "Organic",
@@ -106,7 +108,6 @@ const Dashboard = () => {
     <div className="p-6 animate-fade-in">
       <h1 className="text-2xl font-bold mb-6">Performance Dashboard</h1>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="p-6">
           <h3 className="text-sm font-medium text-gray-500">Avg Click-Through Rate</h3>
@@ -134,7 +135,6 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-medium mb-4">Impressions by Listing</h3>
