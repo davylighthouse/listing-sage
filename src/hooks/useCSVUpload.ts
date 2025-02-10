@@ -6,20 +6,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { processCSVData } from "@/utils/csvProcessor";
 import { validateCSVFormat } from "@/utils/csvValidation";
 import { ListingMetrics } from "@/types/listing";
+import { useAuth } from "./useAuth";
 
 export const useCSVUpload = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<string[][]>([]);
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Mock user ID for development using a valid UUID format
-  const mockUserId = "d4f32e54-1234-4321-8765-1a2b3c4d5e6f";
-
   const processCSV = async (file: File) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User ID not found. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsUploading(true);
       const text = await file.text();
@@ -43,7 +51,7 @@ export const useCSVUpload = () => {
         .from('ebay_listings')
         .insert(
           metrics.map(metric => ({
-            user_id: mockUserId,
+            user_id: user.id,
             ...metric
           }))
         );
@@ -99,7 +107,7 @@ export const useCSVUpload = () => {
 
     setFile(droppedFile);
     await processCSV(droppedFile);
-  }, [toast]);
+  }, []);
 
   const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -116,7 +124,7 @@ export const useCSVUpload = () => {
 
     setFile(selectedFile);
     await processCSV(selectedFile);
-  }, [toast]);
+  }, []);
 
   return {
     isDragging,
