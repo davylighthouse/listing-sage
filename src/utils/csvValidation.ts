@@ -33,8 +33,11 @@ export const validateCSVFormat = (headers: string[]): boolean => {
   }
 
   // Check all headers match exactly
-  for (let i = 0; i < REQUIRED_HEADERS.length; i++) {
-    if (headers[i].trim().toLowerCase() !== REQUIRED_HEADERS[i].toLowerCase()) {
+  const normalizedHeaders = headers.map(h => h.trim().toLowerCase());
+  const normalizedRequired = REQUIRED_HEADERS.map(h => h.toLowerCase());
+  
+  for (let i = 0; i < normalizedRequired.length; i++) {
+    if (normalizedHeaders[i] !== normalizedRequired[i]) {
       throw new Error(`Invalid CSV format. Expected column "${REQUIRED_HEADERS[i]}" but found "${headers[i]}"`);
     }
   }
