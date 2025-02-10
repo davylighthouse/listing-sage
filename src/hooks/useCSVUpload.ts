@@ -18,7 +18,7 @@ export const useCSVUpload = () => {
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  const processCSV = async (file: File) => {
+  const processCSV = useCallback(async (file: File) => {
     if (!user?.id) {
       toast({
         title: "Error",
@@ -79,7 +79,7 @@ export const useCSVUpload = () => {
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [user, toast, navigate]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -95,6 +95,15 @@ export const useCSVUpload = () => {
     e.preventDefault();
     setIsDragging(false);
 
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "Please log in to upload files.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile?.type !== "text/csv") {
       toast({
@@ -107,9 +116,18 @@ export const useCSVUpload = () => {
 
     setFile(droppedFile);
     await processCSV(droppedFile);
-  }, []);
+  }, [user, toast, processCSV, setIsDragging]);
 
   const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "Please log in to upload files.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
@@ -124,7 +142,7 @@ export const useCSVUpload = () => {
 
     setFile(selectedFile);
     await processCSV(selectedFile);
-  }, []);
+  }, [user, toast, processCSV]);
 
   return {
     isDragging,
