@@ -1,33 +1,37 @@
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  // Mock a constant session for development
+  const mockSession: Session = {
+    access_token: "mock_token",
+    token_type: "bearer",
+    expires_in: 3600,
+    refresh_token: "mock_refresh",
+    user: {
+      id: "mock_user_id",
+      aud: "authenticated",
+      role: "authenticated",
+      email: "dev@example.com",
+      email_confirmed_at: new Date().toISOString(),
+      phone: "",
+      confirmed_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      app_metadata: {
+        provider: "email",
+        providers: ["email"],
+      },
+      user_metadata: {},
+      identities: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    expires_at: Date.now() + 3600000,
+  };
 
   return {
-    session,
-    loading,
-    user: session?.user ?? null,
+    session: mockSession,
+    loading: false,
+    user: mockSession.user,
   };
 }
