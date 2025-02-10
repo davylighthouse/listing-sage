@@ -7,6 +7,29 @@ const UploadPage = () => {
   const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [previewData, setPreviewData] = useState<string[][]>([]);
+
+  const processCSV = async (file: File) => {
+    try {
+      const text = await file.text();
+      const rows = text.split('\n').map(row => row.split(','));
+      const headers = rows[0];
+      const validData = rows.slice(1).filter(row => row.length === headers.length);
+      
+      setPreviewData([headers, ...validData.slice(0, 5)]); // Show first 5 rows
+      
+      toast({
+        title: "File processed",
+        description: `Successfully processed ${validData.length} rows of data`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error processing file",
+        description: "Failed to parse CSV file",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -18,7 +41,7 @@ const UploadPage = () => {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
 
@@ -33,13 +56,10 @@ const UploadPage = () => {
     }
 
     setFile(droppedFile);
-    toast({
-      title: "File uploaded",
-      description: "Your CSV file has been uploaded successfully",
-    });
+    await processCSV(droppedFile);
   }, [toast]);
 
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
@@ -53,10 +73,7 @@ const UploadPage = () => {
     }
 
     setFile(selectedFile);
-    toast({
-      title: "File uploaded",
-      description: "Your CSV file has been uploaded successfully",
-    });
+    await processCSV(selectedFile);
   }, [toast]);
 
   return (
@@ -98,6 +115,37 @@ const UploadPage = () => {
         <div className="mt-6 p-4 bg-white rounded-lg border animate-fade-in">
           <h3 className="font-medium text-gray-900">Selected file</h3>
           <p className="mt-1 text-gray-500">{file.name}</p>
+        </div>
+      )}
+
+      {previewData.length > 0 && (
+        <div className="mt-6 p-4 bg-white rounded-lg border animate-fade-in overflow-x-auto">
+          <h3 className="font-medium text-gray-900 mb-4">Data Preview</h3>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {previewData[0].map((header, i) => (
+                  <th
+                    key={i}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {previewData.slice(1).map((row, i) => (
+                <tr key={i}>
+                  {row.map((cell, j) => (
+                    <td key={j} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
