@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ebay_column_mappings: {
+        Row: {
+          column_name: string
+          column_position: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          column_name: string
+          column_position: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          column_name?: string
+          column_position?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ebay_listings: {
         Row: {
           click_through_rate: number | null
@@ -94,6 +121,39 @@ export type Database = {
           top20_search_slot_impressions_change?: number | null
           total_impressions?: number | null
           total_page_views?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ebay_tracked_listings: {
+        Row: {
+          created_at: string
+          ebay_item_id: string
+          id: string
+          last_data_fetch: string | null
+          listing_title: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ebay_item_id: string
+          id?: string
+          last_data_fetch?: string | null
+          listing_title?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ebay_item_id?: string
+          id?: string
+          last_data_fetch?: string | null
+          listing_title?: string | null
+          status?: string | null
           updated_at?: string
           user_id?: string
         }

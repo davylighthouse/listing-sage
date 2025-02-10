@@ -5,6 +5,8 @@ import { UploadZone } from "@/components/csv/UploadZone";
 import { CSVPreview } from "@/components/csv/CSVPreview";
 import FileInfo from "@/components/csv/FileInfo";
 import UploadInstructions from "@/components/csv/UploadInstructions";
+import { ColumnMappingsManager } from "@/components/ebay/ColumnMappingsManager";
+import { TrackedListingsManager } from "@/components/ebay/TrackedListingsManager";
 
 const UploadPage = () => {
   const { user } = useAuth();
@@ -21,23 +23,30 @@ const UploadPage = () => {
   } = useCSVUpload(user?.id);
 
   return (
-    <div className="max-w-4xl mx-auto animate-slide-up">
-      <UploadInstructions />
+    <div className="max-w-4xl mx-auto space-y-8 animate-slide-up">
+      <div className="space-y-8">
+        <ColumnMappingsManager />
+        <TrackedListingsManager />
+      </div>
 
-      <UploadZone
-        isDragging={isDragging}
-        isUploading={isUploading}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onFileInput={handleFileInput}
-      />
+      <div className="border-t pt-8">
+        <UploadInstructions />
 
-      {file && (
-        <FileInfo file={file} processedCount={processedData.length} />
-      )}
+        <UploadZone
+          isDragging={isDragging}
+          isUploading={isUploading}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onFileInput={handleFileInput}
+        />
 
-      <CSVPreview previewData={previewData} />
+        {file && (
+          <FileInfo file={file} processedCount={processedData.length} />
+        )}
+
+        <CSVPreview previewData={previewData} />
+      </div>
     </div>
   );
 };
