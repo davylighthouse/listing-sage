@@ -7,7 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Upload from "./pages/Upload";
 import Dashboard from "./pages/Dashboard";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import AuthGuard from "./components/AuthGuard";
 
 const queryClient = new QueryClient();
 
@@ -31,12 +33,12 @@ const App = () => (
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                     <a
-                      href="/upload"
+                      href="/auth"
                       className="p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
                     >
-                      <h2 className="text-xl font-semibold mb-2">Upload Data</h2>
+                      <h2 className="text-xl font-semibold mb-2">Sign In</h2>
                       <p className="text-gray-600">
-                        Import your eBay listing data via CSV
+                        Login or create an account to start tracking your data
                       </p>
                     </a>
                     <a
@@ -53,20 +55,25 @@ const App = () => (
               </Layout>
             }
           />
+          <Route path="/auth" element={<Auth />} />
           <Route
             path="/upload"
             element={
-              <Layout>
-                <Upload />
-              </Layout>
+              <AuthGuard>
+                <Layout>
+                  <Upload />
+                </Layout>
+              </AuthGuard>
             }
           />
           <Route
             path="/dashboard"
             element={
-              <Layout>
-                <Dashboard />
-              </Layout>
+              <AuthGuard>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </AuthGuard>
             }
           />
           <Route path="*" element={<NotFound />} />

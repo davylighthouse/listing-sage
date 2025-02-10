@@ -9,7 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      ebay_listings: {
+        Row: {
+          click_through_rate: number | null
+          created_at: string
+          id: string
+          item_id: string
+          listing_title: string
+          non_search_organic_impressions: number | null
+          non_search_organic_impressions_change: number | null
+          non_search_promoted_impressions: number | null
+          non_search_promoted_impressions_change: number | null
+          organic_impressions: number | null
+          page_views_organic: number | null
+          page_views_organic_external: number | null
+          page_views_promoted: number | null
+          page_views_promoted_external: number | null
+          promoted_impressions: number | null
+          promoted_status: string | null
+          quantity_sold: number | null
+          rest_search_slot_impressions: number | null
+          sales_conversion_rate: number | null
+          top20_organic_search_slot_impressions: number | null
+          top20_organic_search_slot_impressions_change: number | null
+          top20_search_slot_impressions: number | null
+          top20_search_slot_impressions_change: number | null
+          total_impressions: number | null
+          total_page_views: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          click_through_rate?: number | null
+          created_at?: string
+          id?: string
+          item_id: string
+          listing_title: string
+          non_search_organic_impressions?: number | null
+          non_search_organic_impressions_change?: number | null
+          non_search_promoted_impressions?: number | null
+          non_search_promoted_impressions_change?: number | null
+          organic_impressions?: number | null
+          page_views_organic?: number | null
+          page_views_organic_external?: number | null
+          page_views_promoted?: number | null
+          page_views_promoted_external?: number | null
+          promoted_impressions?: number | null
+          promoted_status?: string | null
+          quantity_sold?: number | null
+          rest_search_slot_impressions?: number | null
+          sales_conversion_rate?: number | null
+          top20_organic_search_slot_impressions?: number | null
+          top20_organic_search_slot_impressions_change?: number | null
+          top20_search_slot_impressions?: number | null
+          top20_search_slot_impressions_change?: number | null
+          total_impressions?: number | null
+          total_page_views?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          click_through_rate?: number | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          listing_title?: string
+          non_search_organic_impressions?: number | null
+          non_search_organic_impressions_change?: number | null
+          non_search_promoted_impressions?: number | null
+          non_search_promoted_impressions_change?: number | null
+          organic_impressions?: number | null
+          page_views_organic?: number | null
+          page_views_organic_external?: number | null
+          page_views_promoted?: number | null
+          page_views_promoted_external?: number | null
+          promoted_impressions?: number | null
+          promoted_status?: string | null
+          quantity_sold?: number | null
+          rest_search_slot_impressions?: number | null
+          sales_conversion_rate?: number | null
+          top20_organic_search_slot_impressions?: number | null
+          top20_organic_search_slot_impressions_change?: number | null
+          top20_search_slot_impressions?: number | null
+          top20_search_slot_impressions_change?: number | null
+          total_impressions?: number | null
+          total_page_views?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
