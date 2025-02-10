@@ -1,11 +1,30 @@
 
 export const EXPECTED_COLUMNS = 24;
 export const REQUIRED_HEADERS = [
-  "Data Start Date",
-  "Data End Date",
-  "Listing Title",
-  "eBay Item ID",
-  "Total Impressions on eBay Site"
+  "data_start_date",
+  "data_end_date",
+  "listing_title",
+  "ebay_item_id",
+  "total_impressions_ebay",
+  "click_through_rate",
+  "quantity_sold",
+  "sales_conversion_rate",
+  "top_20_search_slot_promoted_impressions",
+  "change_top_20_search_slot_promoted_impressions",
+  "top_20_search_slot_organic_impressions",
+  "change_top_20_search_slot_impressions",
+  "rest_of_search_slot_impressions",
+  "non_search_promoted_listings_impressions",
+  "change_non_search_promoted_listings_impressions",
+  "non_search_organic_impressions",
+  "change_non_search_organic_impressions",
+  "total_promoted_listings_impressions",
+  "total_organic_impressions_ebay",
+  "total_page_views",
+  "page_views_promoted_ebay",
+  "page_views_promoted_outside_ebay",
+  "page_views_organic_ebay",
+  "page_views_organic_outside_ebay"
 ];
 
 export const validateCSVFormat = (headers: string[]): boolean => {
@@ -13,9 +32,9 @@ export const validateCSVFormat = (headers: string[]): boolean => {
     throw new Error(`Expected ${EXPECTED_COLUMNS} columns but found ${headers.length}. Please ensure you're using the correct CSV template.`);
   }
 
-  // Check at least the first few critical headers
+  // Check all headers match exactly
   for (let i = 0; i < REQUIRED_HEADERS.length; i++) {
-    if (!headers[i].toLowerCase().includes(REQUIRED_HEADERS[i].toLowerCase())) {
+    if (headers[i].trim().toLowerCase() !== REQUIRED_HEADERS[i].toLowerCase()) {
       throw new Error(`Invalid CSV format. Expected column "${REQUIRED_HEADERS[i]}" but found "${headers[i]}"`);
     }
   }
