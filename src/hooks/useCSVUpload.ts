@@ -46,13 +46,17 @@ export const useCSVUpload = () => {
       const metrics = processCSVData(rows);
       setProcessedData(metrics);
 
+      console.log('Processed metrics:', metrics);
+
       // Insert the processed data into Supabase
       const { error } = await supabase
         .from('ebay_listings')
         .insert(
           metrics.map(metric => ({
             user_id: user.id,
-            ...metric
+            ...metric,
+            data_start_date: new Date(metric.data_start_date).toISOString(),
+            data_end_date: new Date(metric.data_end_date).toISOString(),
           }))
         );
 
@@ -63,12 +67,11 @@ export const useCSVUpload = () => {
 
       toast({
         title: "Success",
-        description: `Successfully processed ${metrics.length} listings. Redirecting to dashboard...`,
+        description: `Successfully processed ${metrics.length} listings`,
       });
 
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+      // Navigate after successful upload
+      navigate('/listings');
     } catch (error) {
       console.error('CSV Processing error:', error);
       toast({
@@ -116,7 +119,7 @@ export const useCSVUpload = () => {
 
     setFile(droppedFile);
     await processCSV(droppedFile);
-  }, [user, toast, processCSV, setIsDragging]);
+  }, [user, toast, processCSV]);
 
   const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!user?.id) {
