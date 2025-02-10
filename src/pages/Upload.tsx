@@ -1,12 +1,13 @@
 
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Upload } from "lucide-react";
 import { ListingMetrics } from "@/types/listing";
 import { processCSVData } from "@/utils/csvProcessor";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { UploadZone } from "@/components/csv/UploadZone";
+import { CSVPreview } from "@/components/csv/CSVPreview";
 
 const UploadPage = () => {
   const { toast } = useToast();
@@ -146,38 +147,14 @@ const UploadPage = () => {
         </p>
       </div>
 
-      <div
-        className={`relative border-2 border-dashed rounded-lg p-12 transition-colors ${
-          isDragging
-            ? "border-primary bg-primary/5"
-            : "border-gray-300 hover:border-primary"
-        }`}
+      <UploadZone
+        isDragging={isDragging}
+        isUploading={isUploading}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-      >
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          disabled={isUploading}
-        />
-        <div className="text-center">
-          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-4 text-lg font-medium text-gray-900">
-            {isUploading ? (
-              "Uploading..."
-            ) : (
-              <>
-                Drop your CSV file here, or{" "}
-                <span className="text-primary">browse</span>
-              </>
-            )}
-          </p>
-          <p className="mt-1 text-gray-500">CSV files only, up to 10MB</p>
-        </div>
-      </div>
+        onFileInput={handleFileInput}
+      />
 
       {file && (
         <div className="mt-6 p-4 bg-white rounded-lg border animate-fade-in">
@@ -189,39 +166,7 @@ const UploadPage = () => {
         </div>
       )}
 
-      {previewData.length > 0 && (
-        <div className="mt-6 p-4 bg-white rounded-lg border animate-fade-in overflow-x-auto">
-          <h3 className="font-medium text-gray-900 mb-4">Data Preview</h3>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {previewData[0].map((header, i) => (
-                  <th
-                    key={i}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {previewData.slice(1).map((row, i) => (
-                <tr key={i}>
-                  {row.map((cell, j) => (
-                    <td
-                      key={j}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                    >
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <CSVPreview previewData={previewData} />
     </div>
   );
 };
