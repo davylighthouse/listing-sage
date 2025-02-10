@@ -5,17 +5,22 @@ import { Upload } from "lucide-react";
 import { ListingMetrics } from "@/types/listing";
 import { processCSVData } from "@/utils/csvProcessor";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const UploadPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<string[][]>([]);
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const processCSV = async (file: File) => {
     try {
+      setIsUploading(true);
       const text = await file.text();
       const rows = text.split('\n').map(row => row.split(','));
       const headers = rows[0];
@@ -28,10 +33,20 @@ const UploadPage = () => {
       const metrics = processCSVData(validData);
       setProcessedData(metrics);
       
-      // Store in localStorage
-      localStorage.setItem('ebayData', JSON.stringify(metrics));
-      
-      console.log('Processed metrics:', metrics);
+      // Insert data into Supabase
+      const { error } = await supabase
+        .from('ebay_listings')
+        .insert(
+          metrics.map(metric => ({
+            ...metric,
+            user_id: user?.id,
+          }))
+        );
+
+      if (error) {
+        console.error('Supabase insertion error:', error);
+        throw new Error('Failed to save data to database');
+      }
 
       toast({
         title: "File processed",
@@ -46,9 +61,11 @@ const UploadPage = () => {
       console.error('CSV Processing error:', error);
       toast({
         title: "Error processing file",
-        description: "Failed to parse CSV file. Please ensure it matches the expected format.",
+        description: error instanceof Error ? error.message : "Failed to process CSV file. Please ensure it matches the expected format.",
         variant: "destructive",
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -121,12 +138,19 @@ const UploadPage = () => {
           accept=".csv"
           onChange={handleFileInput}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          disabled={isUploading}
         />
         <div className="text-center">
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
           <p className="mt-4 text-lg font-medium text-gray-900">
-            Drop your CSV file here, or{" "}
-            <span className="text-primary">browse</span>
+            {isUploading ? (
+              "Uploading..."
+            ) : (
+              <>
+                Drop your CSV file here, or{" "}
+                <span className="text-primary">browse</span>
+              </>
+            )}
           </p>
           <p className="mt-1 text-gray-500">CSV files only, up to 10MB</p>
         </div>

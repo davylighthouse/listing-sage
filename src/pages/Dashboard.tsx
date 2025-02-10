@@ -1,5 +1,8 @@
 
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { ListingMetrics } from "@/types/listing";
 import {
   BarChart,
   Bar,
@@ -16,10 +19,30 @@ import {
 } from "recharts";
 
 const Dashboard = () => {
-  // In a full implementation, this would come from a store or database
-  const data = localStorage.getItem("ebayData")
-    ? JSON.parse(localStorage.getItem("ebayData")!)
-    : [];
+  const [data, setData] = useState<ListingMetrics[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data: listings, error } = await supabase
+          .from('ebay_listings')
+          .select('*');
+
+        if (error) {
+          throw error;
+        }
+
+        setData(listings || []);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Calculate averages for KPI cards
   const calculateAverages = () => {
@@ -70,6 +93,14 @@ const Dashboard = () => {
   ];
 
   const COLORS = ["#3b82f6", "#10b981"];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 animate-fade-in">
