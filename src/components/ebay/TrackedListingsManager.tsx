@@ -15,30 +15,32 @@ export const TrackedListingsManager = () => {
   const [newItemId, setNewItemId] = useState("");
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       loadListings();
     }
-  }, [user]);
+  }, [user?.id]);
 
   const loadListings = async () => {
     if (!user?.id) return;
     
-    const { data, error } = await supabase
-      .from("ebay_tracked_listings")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("ebay_tracked_listings")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-    if (error) {
+      if (error) throw error;
+
+      setListings(data || []);
+    } catch (error) {
+      console.error('Error loading listings:', error);
       toast({
         title: "Error",
         description: "Failed to load tracked listings",
         variant: "destructive",
       });
-      return;
     }
-
-    setListings(data || []);
   };
 
   const addListing = async () => {
@@ -80,6 +82,7 @@ export const TrackedListingsManager = () => {
         description: "Listing added for tracking",
       });
     } catch (error) {
+      console.error('Error adding listing:', error);
       toast({
         title: "Error",
         description: "Failed to add listing",
@@ -107,6 +110,7 @@ export const TrackedListingsManager = () => {
         description: "Listing removed from tracking",
       });
     } catch (error) {
+      console.error('Error deleting listing:', error);
       toast({
         title: "Error",
         description: "Failed to remove listing",

@@ -15,30 +15,32 @@ export const ColumnMappingsManager = () => {
   const [newMapping, setNewMapping] = useState({ name: "", position: "" });
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       loadMappings();
     }
-  }, [user]);
+  }, [user?.id]);
 
   const loadMappings = async () => {
     if (!user?.id) return;
     
-    const { data, error } = await supabase
-      .from("ebay_column_mappings")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("column_position", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("ebay_column_mappings")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("column_position", { ascending: true });
 
-    if (error) {
+      if (error) throw error;
+
+      setMappings(data || []);
+    } catch (error) {
+      console.error('Error loading mappings:', error);
       toast({
         title: "Error",
         description: "Failed to load column mappings",
         variant: "destructive",
       });
-      return;
     }
-
-    setMappings(data || []);
   };
 
   const addMapping = async () => {
@@ -81,6 +83,7 @@ export const ColumnMappingsManager = () => {
         description: "Column mapping added successfully",
       });
     } catch (error) {
+      console.error('Error adding mapping:', error);
       toast({
         title: "Error",
         description: "Failed to add column mapping",
@@ -108,6 +111,7 @@ export const ColumnMappingsManager = () => {
         description: "Column mapping deleted successfully",
       });
     } catch (error) {
+      console.error('Error deleting mapping:', error);
       toast({
         title: "Error",
         description: "Failed to remove column mapping",
