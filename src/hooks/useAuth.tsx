@@ -9,7 +9,7 @@ export function useAuth() {
     expires_in: 3600,
     refresh_token: "mock_refresh",
     user: {
-      id: "mock_user_id",
+      id: "d4f32e54-1234-4321-8765-1a2b3c4d5e6f", // Using the same UUID as in useCSVUpload
       aud: "authenticated",
       role: "authenticated",
       email: "dev@example.com",

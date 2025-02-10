@@ -16,8 +16,8 @@ export const useCSVUpload = () => {
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Mock user ID for development
-  const mockUserId = "mock_user_id";
+  // Mock user ID for development using a valid UUID format
+  const mockUserId = "d4f32e54-1234-4321-8765-1a2b3c4d5e6f";
 
   const processCSV = async (file: File) => {
     try {
