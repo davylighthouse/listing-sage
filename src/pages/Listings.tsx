@@ -8,7 +8,7 @@ import { Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ListingSummary {
-  item_id: string;
+  ebay_item_id: string;
   listing_title: string;
   total_records: number;
 }
@@ -21,7 +21,7 @@ const ListingsPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ebay_listings")
-        .select("item_id, listing_title")
+        .select("ebay_item_id, listing_title")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -33,16 +33,16 @@ const ListingsPage = () => {
         throw error;
       }
 
-      // Group by item_id and get latest listing_title
+      // Group by ebay_item_id and get latest listing_title
       const uniqueListings = data.reduce((acc: Record<string, ListingSummary>, curr) => {
-        if (!acc[curr.item_id]) {
-          acc[curr.item_id] = {
-            item_id: curr.item_id,
+        if (!acc[curr.ebay_item_id]) {
+          acc[curr.ebay_item_id] = {
+            ebay_item_id: curr.ebay_item_id,
             listing_title: curr.listing_title,
             total_records: 1,
           };
         } else {
-          acc[curr.item_id].total_records++;
+          acc[curr.ebay_item_id].total_records++;
         }
         return acc;
       }, {});
@@ -67,11 +67,11 @@ const ListingsPage = () => {
       <div className="grid gap-4">
         {listings?.map((listing) => (
           <div
-            key={listing.item_id}
+            key={listing.ebay_item_id}
             className="bg-white p-4 rounded-lg border shadow-sm flex items-center justify-between"
           >
             <div className="flex-1">
-              <div className="font-medium">{listing.item_id}</div>
+              <div className="font-medium">{listing.ebay_item_id}</div>
               <div className="text-sm text-gray-500">{listing.listing_title}</div>
               <div className="text-xs text-gray-400 mt-1">
                 {listing.total_records} data points
@@ -82,7 +82,7 @@ const ListingsPage = () => {
               size="sm"
               asChild
             >
-              <Link to={`/listings/${listing.item_id}`}>
+              <Link to={`/listings/${listing.ebay_item_id}`}>
                 <Eye className="h-4 w-4 mr-2" />
                 View Details
               </Link>

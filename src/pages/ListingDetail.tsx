@@ -14,7 +14,7 @@ const ListingDetail = () => {
       const { data, error } = await supabase
         .from("ebay_listings")
         .select("*")
-        .eq("item_id", itemId)
+        .eq("ebay_item_id", itemId)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -56,7 +56,7 @@ const ListingDetail = () => {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-2">{latestData.listing_title}</h1>
-      <p className="text-gray-500 mb-6">Item ID: {latestData.item_id}</p>
+      <p className="text-gray-500 mb-6">Item ID: {latestData.ebay_item_id}</p>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white p-4 rounded-lg border">
@@ -64,7 +64,7 @@ const ListingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Total Impressions</span>
-              <span>{latestData.total_impressions}</span>
+              <span>{latestData.total_impressions_ebay}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Click Through Rate</span>
@@ -81,12 +81,12 @@ const ListingDetail = () => {
           <h3 className="font-medium mb-2">Search Performance</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Top 20 Search Slot</span>
-              <span>{latestData.top20_search_slot_impressions}</span>
+              <span className="text-gray-600">Top 20 Search Promoted</span>
+              <span>{latestData.top_20_search_slot_promoted_impressions}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Organic Search</span>
-              <span>{latestData.top20_organic_search_slot_impressions}</span>
+              <span className="text-gray-600">Top 20 Search Organic</span>
+              <span>{latestData.top_20_search_slot_organic_impressions}</span>
             </div>
           </div>
         </div>
@@ -99,12 +99,12 @@ const ListingDetail = () => {
               <span>{latestData.total_page_views}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Organic Views</span>
-              <span>{latestData.page_views_organic}</span>
+              <span className="text-gray-600">Organic eBay Views</span>
+              <span>{latestData.page_views_organic_ebay}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Promoted Views</span>
-              <span>{latestData.page_views_promoted}</span>
+              <span className="text-gray-600">Promoted eBay Views</span>
+              <span>{latestData.page_views_promoted_ebay}</span>
             </div>
           </div>
         </div>
