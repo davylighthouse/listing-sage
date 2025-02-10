@@ -16,36 +16,45 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
   const dataRows = rows.slice(1); // Skip header row
 
   for (const row of dataRows) {
-    if (row.length < 22) continue; // Skip invalid rows
+    if (row.length < 24) {
+      console.warn('Skipping invalid row with insufficient columns:', row);
+      continue;
+    }
 
-    const metric: ListingMetrics = {
-      itemId: row[1].trim(),
-      listingTitle: row[0].trim(),
-      promotedStatus: row[2].trim(),
-      totalImpressions: cleanNumericValue(row[3]),
-      clickThroughRate: cleanPercentage(row[4]),
-      quantitySold: cleanNumericValue(row[5]),
-      salesConversionRate: cleanPercentage(row[6]),
-      top20SearchSlotImpressions: cleanNumericValue(row[7]),
-      top20SearchSlotImpressionsChange: cleanPercentage(row[8]),
-      top20OrganicSearchSlotImpressions: cleanNumericValue(row[9]),
-      top20OrganicSearchSlotImpressionsChange: cleanPercentage(row[10]),
-      restSearchSlotImpressions: cleanNumericValue(row[11]),
-      nonSearchPromotedImpressions: cleanNumericValue(row[12]),
-      nonSearchPromotedImpressionsChange: cleanPercentage(row[13]),
-      nonSearchOrganicImpressions: cleanNumericValue(row[14]),
-      nonSearchOrganicImpressionsChange: cleanPercentage(row[15]),
-      promotedImpressions: cleanNumericValue(row[16]),
-      organicImpressions: cleanNumericValue(row[17]),
-      totalPageViews: cleanNumericValue(row[18]),
-      pageViewsPromoted: cleanNumericValue(row[19]),
-      pageViewsPromotedExternal: cleanNumericValue(row[20]),
-      pageViewsOrganic: cleanNumericValue(row[21]),
-      pageViewsOrganicExternal: cleanNumericValue(row[22]),
-      importDate: new Date().toISOString(),
-    };
+    try {
+      const metric: ListingMetrics = {
+        importDate: new Date().toISOString(),
+        listingTitle: row[2].trim(),
+        itemId: row[3].trim(),
+        totalImpressions: cleanNumericValue(row[4]),
+        clickThroughRate: cleanPercentage(row[5]),
+        quantitySold: cleanNumericValue(row[6]),
+        salesConversionRate: cleanPercentage(row[7]),
+        top20SearchSlotImpressions: cleanNumericValue(row[8]),
+        top20SearchSlotImpressionsChange: cleanPercentage(row[9]),
+        top20OrganicSearchSlotImpressions: cleanNumericValue(row[10]),
+        top20OrganicSearchSlotImpressionsChange: cleanPercentage(row[11]),
+        restSearchSlotImpressions: cleanNumericValue(row[12]),
+        nonSearchPromotedImpressions: cleanNumericValue(row[13]),
+        nonSearchPromotedImpressionsChange: cleanPercentage(row[14]),
+        nonSearchOrganicImpressions: cleanNumericValue(row[15]),
+        nonSearchOrganicImpressionsChange: cleanPercentage(row[16]),
+        promotedImpressions: cleanNumericValue(row[17]),
+        organicImpressions: cleanNumericValue(row[18]),
+        totalPageViews: cleanNumericValue(row[19]),
+        pageViewsPromoted: cleanNumericValue(row[20]),
+        pageViewsPromotedExternal: cleanNumericValue(row[21]),
+        pageViewsOrganic: cleanNumericValue(row[22]),
+        pageViewsOrganicExternal: cleanNumericValue(row[23]),
+        // Determine promoted status based on whether there are any promoted impressions
+        promotedStatus: cleanNumericValue(row[17]) > 0 ? 'PROMOTED' : 'ORGANIC'
+      };
 
-    metrics.push(metric);
+      metrics.push(metric);
+    } catch (error) {
+      console.error('Error processing row:', row, error);
+      continue;
+    }
   }
 
   return metrics;

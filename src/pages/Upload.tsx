@@ -9,6 +9,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { UploadZone } from "@/components/csv/UploadZone";
 import { CSVPreview } from "@/components/csv/CSVPreview";
 
+const EXPECTED_COLUMNS = 24;
+const REQUIRED_HEADERS = [
+  "Data Start Date",
+  "Data End Date",
+  "Listing Title",
+  "eBay Item ID",
+  "Total Impressions on eBay Site"
+  // ... We'll check the first few columns to validate the format
+];
+
 const UploadPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -18,6 +28,20 @@ const UploadPage = () => {
   const [previewData, setPreviewData] = useState<string[][]>([]);
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  const validateCSVFormat = (headers: string[]): boolean => {
+    if (headers.length !== EXPECTED_COLUMNS) {
+      throw new Error(`Expected ${EXPECTED_COLUMNS} columns but found ${headers.length}. Please ensure you're using the correct CSV template.`);
+    }
+
+    // Check at least the first few critical headers
+    for (let i = 0; i < REQUIRED_HEADERS.length; i++) {
+      if (!headers[i].toLowerCase().includes(REQUIRED_HEADERS[i].toLowerCase())) {
+        throw new Error(`Invalid CSV format. Expected column "${REQUIRED_HEADERS[i]}" but found "${headers[i]}"`);
+      }
+    }
+    return true;
+  };
 
   const processCSV = async (file: File) => {
     try {
@@ -29,11 +53,19 @@ const UploadPage = () => {
         .map(row => row.split(',').map(cell => cell.trim()));
       
       const headers = rows[0];
+      
+      // Validate CSV format
+      validateCSVFormat(headers);
+      
       // Filter out rows that don't match header length
       const validData = rows.filter(row => row.length === headers.length);
       
+      if (validData.length <= 1) {
+        throw new Error('No valid data rows found in the CSV file');
+      }
+      
       // Show preview data
-      setPreviewData([headers, ...validData.slice(0, 5)]); 
+      setPreviewData([headers, ...validData.slice(1, 6)]); 
       
       // Process full dataset
       const metrics = processCSVData(validData);
@@ -154,6 +186,16 @@ const UploadPage = () => {
         <p className="mt-1 text-gray-500">
           Import your eBay listing data by uploading a CSV file
         </p>
+        <p className="mt-2 text-sm text-gray-500">
+          Your CSV file should contain the following columns in order:
+        </p>
+        <ul className="mt-2 text-sm text-gray-500 list-disc list-inside">
+          <li>Data Start Date</li>
+          <li>Data End Date</li>
+          <li>Listing Title</li>
+          <li>eBay Item ID</li>
+          <li>And other metrics...</li>
+        </ul>
       </div>
 
       <UploadZone
