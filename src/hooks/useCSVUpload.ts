@@ -7,7 +7,7 @@ import { processCSVData } from "@/utils/csvProcessor";
 import { validateCSVFormat } from "@/utils/csvValidation";
 import { ListingMetrics } from "@/types/listing";
 
-export const useCSVUpload = (userId: string | undefined) => {
+export const useCSVUpload = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
@@ -16,17 +16,10 @@ export const useCSVUpload = (userId: string | undefined) => {
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  const processCSV = async (file: File) => {
-    if (!userId) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to upload files",
-        variant: "destructive",
-      });
-      navigate('/auth');
-      return;
-    }
+  // Mock user ID for development
+  const mockUserId = "mock_user_id";
 
+  const processCSV = async (file: File) => {
     try {
       setIsUploading(true);
       const text = await file.text();
@@ -50,7 +43,7 @@ export const useCSVUpload = (userId: string | undefined) => {
         .from('ebay_listings')
         .insert(
           metrics.map(metric => ({
-            user_id: userId,
+            user_id: mockUserId,
             ...metric
           }))
         );
