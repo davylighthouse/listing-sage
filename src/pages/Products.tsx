@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,10 +24,13 @@ interface Product {
 }
 
 interface ProductListing {
+  id: string;
   ebay_item_id: string;
   ebay_listings: {
     listing_title: string;
   };
+  product_id: string;
+  created_at: string;
 }
 
 const ProductsPage = () => {
@@ -108,7 +110,7 @@ const ProductsPage = () => {
       const { data, error } = await supabase
         .from("product_listings")
         .select(`
-          ebay_item_id,
+          *,
           ebay_listings (
             listing_title
           )
