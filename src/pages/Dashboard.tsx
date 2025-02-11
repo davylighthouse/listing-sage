@@ -44,11 +44,11 @@ const Dashboard = () => {
               .select('*')
               .eq('ebay_item_id', listing.ebay_item_id)
               .order('data_end_date', { ascending: false })
-              .limit(1)
-              .single();
+              .limit(1);
 
-            if (metricsError) {
-              console.error('Error fetching metrics:', metricsError);
+            // If there's no history data or an error, return default values
+            if (metricsError || !metricsData || metricsData.length === 0) {
+              console.log('No history data for listing:', listing.ebay_item_id);
               return {
                 ...listing,
                 total_impressions_ebay: 0,
@@ -56,13 +56,28 @@ const Dashboard = () => {
                 quantity_sold: 0,
                 sales_conversion_rate: 0,
                 total_page_views: 0,
-                // Add other metrics with default values
+                total_organic_impressions_ebay: 0,
+                total_promoted_listings_impressions: 0,
+                page_views_promoted_ebay: 0,
+                page_views_promoted_outside_ebay: 0,
+                page_views_organic_ebay: 0,
+                page_views_organic_outside_ebay: 0,
+                top_20_search_slot_promoted_impressions: 0,
+                top_20_search_slot_organic_impressions: 0,
+                change_top_20_search_slot_promoted_impressions: 0,
+                change_top_20_search_slot_impressions: 0,
+                rest_of_search_slot_impressions: 0,
+                non_search_promoted_listings_impressions: 0,
+                change_non_search_promoted_listings_impressions: 0,
+                non_search_organic_impressions: 0,
+                change_non_search_organic_impressions: 0,
               } as ListingMetrics;
             }
 
+            // Return the most recent metrics data
             return {
               ...listing,
-              ...metricsData,
+              ...metricsData[0],
             } as ListingMetrics;
           })
         );
