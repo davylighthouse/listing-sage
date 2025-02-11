@@ -1,65 +1,41 @@
-
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
-  // Handle empty or whitespace-only values
+  // Return 0 for empty/null values
   if (!value || value.trim() === '') {
-    console.log('Empty value detected, returning 0');
     return 0;
   }
 
-  // First, let's clean up the string and log the original value
+  // Clean up the string and handle special cases
   const cleanedValue = value.trim();
-  console.log('Processing numeric value:', { original: value, cleaned: cleanedValue });
-  
-  // Handle N/A and dash cases
   if (cleanedValue.toLowerCase() === 'n/a' || cleanedValue === '-') {
-    console.log('N/A or dash value detected, returning 0');
     return 0;
-  }
-
-  // Remove any currency symbols and spaces
-  const withoutCurrency = cleanedValue.replace(/[$£€\s]/g, '');
-  
-  // Handle percentage values separately
-  if (withoutCurrency.includes('%')) {
-    return cleanPercentage(withoutCurrency);
   }
 
   try {
-    // Remove commas and parse as float
-    const normalizedNumber = withoutCurrency.replace(/,/g, '');
-    const parsed = parseFloat(normalizedNumber);
-    console.log('Parsed numeric value:', { 
-      original: value,
-      withoutCurrency,
-      normalizedNumber,
-      parsed 
-    });
-
-    // Check if we got a valid number
-    if (!isNaN(parsed) && isFinite(parsed)) {
-      return parsed;
+    // Remove any currency symbols and spaces
+    const withoutCurrency = cleanedValue.replace(/[$£€\s]/g, '');
+    
+    // Parse the number keeping commas for thousands
+    const parsedValue = parseFloat(withoutCurrency.replace(/,/g, ''));
+    
+    if (!isNaN(parsedValue) && isFinite(parsedValue)) {
+      return parsedValue;
     }
-
-    console.warn('Failed to parse numeric value:', { original: value, parsed });
+    
     return 0;
   } catch (error) {
-    console.error('Error parsing numeric value:', { value, error });
     return 0;
   }
 };
 
 const cleanPercentage = (value: string): number => {
-  // Handle empty or whitespace-only values
+  // Return 0 for empty/null values
   if (!value || value.trim() === '') {
     return 0;
   }
 
-  // Remove spaces and percentage signs
   const cleaned = value.trim().replace(/[%\s]/g, '');
-  
-  // Handle N/A and dash cases
   if (cleaned.toLowerCase() === 'n/a' || cleaned === '-') {
     return 0;
   }
@@ -70,15 +46,13 @@ const cleanPercentage = (value: string): number => {
       return parsed / 100;
     }
     return 0;
-  } catch (error) {
-    console.error('Error parsing percentage:', { value, error });
+  } catch {
     return 0;
   }
 };
 
 const parseDate = (dateStr: string): string => {
   if (!dateStr || dateStr.trim() === '') {
-    console.warn('Empty date string provided');
     return new Date().toISOString();
   }
 
@@ -87,13 +61,11 @@ const parseDate = (dateStr: string): string => {
     const date = new Date(cleanedDate);
     
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date format:', dateStr);
       return new Date().toISOString();
     }
     
     return date.toISOString();
-  } catch (error) {
-    console.error('Error parsing date:', { dateStr, error });
+  } catch {
     return new Date().toISOString();
   }
 };
@@ -104,7 +76,6 @@ const validateRow = (row: string[]): boolean => {
     return false;
   }
 
-  // Check for required string fields
   if (!row[2]?.trim() || !row[3]?.trim()) {
     console.error('Missing required fields:', { 
       listing_title: row[2], 
@@ -121,22 +92,13 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
   const dataRows = rows.slice(1); // Skip header row
 
   for (const row of dataRows) {
-    // Filter out empty values that might come from trailing commas
     const cleanRow = row.filter(cell => cell !== '');
     
     if (!validateRow(cleanRow)) {
-      console.warn('Skipping invalid row:', cleanRow);
       continue;
     }
 
     try {
-      // Log the raw total_impressions_ebay value before processing
-      console.log('Raw total_impressions_ebay:', {
-        value: cleanRow[4],
-        position: 4
-      });
-
-      // Create the metric object with all fields
       const metric: ListingMetrics = {
         data_start_date: parseDate(cleanRow[0]),
         data_end_date: parseDate(cleanRow[1]),
@@ -164,41 +126,12 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
-      // Log the processed values for debugging
-      console.log('Processed metric:', {
-        title: metric.listing_title,
-        impressions: metric.total_impressions_ebay,
-        raw_impressions: cleanRow[4]
-      });
-
-      // Validate numeric fields explicitly
-      const numericFields = [
-        'total_impressions_ebay',
-        'click_through_rate',
-        'quantity_sold',
-        'sales_conversion_rate'
-      ];
-
-      // Check for any NaN or invalid values
-      for (const field of numericFields) {
-        const value = metric[field as keyof ListingMetrics];
-        if (typeof value === 'number' && (isNaN(value) || !isFinite(value))) {
-          throw new Error(`Invalid numeric value for ${field}: ${value}`);
-        }
-      }
-
       metrics.push(metric);
     } catch (error) {
-      console.error('Error processing row:', { row: cleanRow, error });
+      console.error('Error processing row:', error);
       continue;
     }
   }
-
-  // Log the final processed metrics for verification
-  console.log('Final processed metrics:', metrics.map(m => ({
-    title: m.listing_title,
-    impressions: m.total_impressions_ebay
-  })));
 
   return metrics;
 };
