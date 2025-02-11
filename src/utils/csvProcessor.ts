@@ -6,8 +6,15 @@ const cleanNumericValue = (value: string): number => {
   const cleaned = value.replace(/[^0-9,.-]/g, '');
   // Replace commas with empty string to handle numbers like "233,679"
   const noCommas = cleaned.replace(/,/g, '');
-  console.log('Cleaning numeric value:', { original: value, cleaned, noCommas, result: parseFloat(noCommas) });
-  return noCommas ? parseFloat(noCommas) : 0;
+  const result = noCommas ? parseFloat(noCommas) : 0;
+  console.log('Processing numeric value:', { 
+    original: value, 
+    cleaned, 
+    noCommas, 
+    result,
+    resultType: typeof result 
+  });
+  return result;
 };
 
 const cleanPercentage = (value: string): number => {
@@ -15,24 +22,34 @@ const cleanPercentage = (value: string): number => {
   const cleaned = value.replace(/[^0-9.-]/g, '');
   // Convert percentage to decimal (e.g., 15.5 -> 0.155)
   const result = cleaned ? parseFloat(cleaned) / 100 : 0;
-  console.log('Cleaning percentage:', { original: value, cleaned, result });
+  console.log('Processing percentage:', { 
+    original: value, 
+    cleaned, 
+    result,
+    resultType: typeof result 
+  });
   return result;
 };
 
 const parseDate = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
-    console.warn('Invalid date:', dateStr);
-    return dateStr;
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date:', dateStr);
+      return new Date().toISOString(); // Fallback to current date if invalid
+    }
+    return date.toISOString();
+  } catch (error) {
+    console.error('Error parsing date:', dateStr, error);
+    return new Date().toISOString(); // Fallback to current date if error
   }
-  return date.toISOString();
 };
 
 export const processCSVData = (rows: string[][]): ListingMetrics[] => {
   const metrics: ListingMetrics[] = [];
   const dataRows = rows.slice(1); // Skip header row
 
-  console.log('Processing CSV data rows:', dataRows.length);
+  console.log('Starting CSV processing with rows:', dataRows.length);
 
   for (const row of dataRows) {
     // Filter out empty values that might come from trailing commas
@@ -71,12 +88,12 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
-      console.log('Processed row:', {
+      console.log('Processed row data:', {
         itemId: metric.ebay_item_id,
+        title: metric.listing_title,
         impressions: metric.total_impressions_ebay,
         ctr: metric.click_through_rate,
-        quantitySold: metric.quantity_sold,
-        conversionRate: metric.sales_conversion_rate
+        sales: metric.quantity_sold
       });
 
       metrics.push(metric);
@@ -86,12 +103,6 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     }
   }
 
-  if (metrics.length === 0) {
-    console.warn('No valid rows were processed from the CSV file');
-  } else {
-    console.log(`Successfully processed ${metrics.length} rows from CSV`);
-  }
-
+  console.log(`Successfully processed ${metrics.length} rows from CSV`);
   return metrics;
 };
-
