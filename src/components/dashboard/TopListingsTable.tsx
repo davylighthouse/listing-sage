@@ -36,7 +36,7 @@ export const TopListingsTable = ({ data, rankCriteria }: TopListingsTableProps) 
     }
   };
 
-  const formatValue = (value: number, criteria: string): string => {
+  const formatValue = (value: number | null | undefined, criteria: string): string => {
     if (criteria === "click_through_rate" || criteria === "sales_conversion_rate") {
       return formatMetricValue(value, "percentage");
     }
