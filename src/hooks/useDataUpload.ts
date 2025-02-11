@@ -28,12 +28,9 @@ export const useDataUpload = () => {
       data_end_date: new Date(metric.data_end_date).toISOString(),
     }));
 
-    console.log('Uploading batch:', formattedBatch);
-
     const { data: results, error } = await supabase.rpc(
       'upsert_ebay_listings_with_history',
-      { listings: formattedBatch },
-      { count: 'exact' }
+      { listings: formattedBatch }
     );
 
     if (error) {
@@ -50,15 +47,12 @@ export const useDataUpload = () => {
       };
     }
 
-    console.log('Batch results:', results);
-
     const processedResults = results.reduce((acc, result) => ({
       successCount: acc.successCount + (result.success ? 1 : 0),
       errorCount: acc.errorCount + (result.success ? 0 : 1),
       errors: result.success ? acc.errors : [...acc.errors, `Error with item ${result.ebay_item_id}: ${result.message}`]
     }), { successCount: 0, errorCount: 0, errors: [] as string[] });
 
-    console.log('Processed results:', processedResults);
     return processedResults;
   }, []);
 

@@ -65,14 +65,16 @@ export const useCSVUpload = () => {
       setProcessedData(metrics);
 
       const importBatchId = crypto.randomUUID();
-      const batchSize = 25; // Increased batch size
+      const batchSize = 50; // Increased batch size for better performance
       let totalSuccessCount = 0;
       let totalErrorCount = 0;
       let allErrors: string[] = [];
+      const totalBatches = Math.ceil(metrics.length / batchSize);
 
       for (let i = 0; i < metrics.length; i += batchSize) {
         const batch = metrics.slice(i, i + batchSize);
-        console.log(`Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(metrics.length / batchSize)}`);
+        const currentBatch = Math.floor(i / batchSize) + 1;
+        console.log(`Processing batch ${currentBatch} of ${totalBatches}`);
         
         try {
           const { successCount, errorCount, errors } = await uploadBatch(
@@ -86,7 +88,14 @@ export const useCSVUpload = () => {
           totalErrorCount += errorCount;
           allErrors.push(...errors);
 
-          console.log(`Batch results - Success: ${successCount}, Errors: ${errorCount}`);
+          // Update progress notification
+          toast({
+            title: "Upload Progress",
+            description: `Processed ${currentBatch} of ${totalBatches} batches (${Math.round((currentBatch/totalBatches) * 100)}%)`,
+            variant: "default"
+          });
+
+          console.log(`Batch ${currentBatch} results - Success: ${successCount}, Errors: ${errorCount}`);
           console.log(`Total progress - Success: ${totalSuccessCount}, Errors: ${totalErrorCount}`);
 
           if (errors.length > 0) {
@@ -94,14 +103,14 @@ export const useCSVUpload = () => {
           }
 
         } catch (error) {
-          console.error(`Failed to process batch:`, error);
+          console.error(`Failed to process batch ${currentBatch}:`, error);
           totalErrorCount += batch.length;
-          allErrors.push(`Failed to process batch: ${error.message}`);
+          allErrors.push(`Failed to process batch ${currentBatch}: ${error.message}`);
           continue; // Continue with next batch even if this one fails
         }
 
-        // Small delay between batches to prevent overwhelming the database
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Minimal delay between batches to prevent overwhelming the database
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
 
       const successMessage = `Successfully processed ${totalSuccessCount} out of ${metrics.length} listings`;
