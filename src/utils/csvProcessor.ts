@@ -4,14 +4,17 @@ import { ListingMetrics } from "@/types/listing";
 const cleanNumericValue = (value: string): number => {
   // Handle empty or whitespace-only values
   if (!value || value.trim() === '') {
+    console.log('Empty value detected, returning 0');
     return 0;
   }
 
-  // First, let's clean up the string
+  // First, let's clean up the string and log the original value
   const cleanedValue = value.trim();
+  console.log('Processing numeric value:', { original: value, cleaned: cleanedValue });
   
   // Handle N/A and dash cases
   if (cleanedValue.toLowerCase() === 'n/a' || cleanedValue === '-') {
+    console.log('N/A or dash value detected, returning 0');
     return 0;
   }
 
@@ -27,6 +30,12 @@ const cleanNumericValue = (value: string): number => {
     // Remove commas and parse as float
     const normalizedNumber = withoutCurrency.replace(/,/g, '');
     const parsed = parseFloat(normalizedNumber);
+    console.log('Parsed numeric value:', { 
+      original: value,
+      withoutCurrency,
+      normalizedNumber,
+      parsed 
+    });
 
     // Check if we got a valid number
     if (!isNaN(parsed) && isFinite(parsed)) {
@@ -121,6 +130,12 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     }
 
     try {
+      // Log the raw total_impressions_ebay value before processing
+      console.log('Raw total_impressions_ebay:', {
+        value: cleanRow[4],
+        position: 4
+      });
+
       // Create the metric object with all fields
       const metric: ListingMetrics = {
         data_start_date: parseDate(cleanRow[0]),
@@ -132,14 +147,14 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         quantity_sold: cleanNumericValue(cleanRow[6]),
         sales_conversion_rate: cleanPercentage(cleanRow[7]),
         top_20_search_slot_promoted_impressions: cleanNumericValue(cleanRow[8]),
-        change_top_20_search_slot_promoted_impressions: cleanPercentage(cleanRow[9]),
+        change_top_20_search_slot_promoted_impressions: cleanNumericValue(cleanRow[9]),
         top_20_search_slot_organic_impressions: cleanNumericValue(cleanRow[10]),
-        change_top_20_search_slot_impressions: cleanPercentage(cleanRow[11]),
+        change_top_20_search_slot_impressions: cleanNumericValue(cleanRow[11]),
         rest_of_search_slot_impressions: cleanNumericValue(cleanRow[12]),
         non_search_promoted_listings_impressions: cleanNumericValue(cleanRow[13]),
-        change_non_search_promoted_listings_impressions: cleanPercentage(cleanRow[14]),
+        change_non_search_promoted_listings_impressions: cleanNumericValue(cleanRow[14]),
         non_search_organic_impressions: cleanNumericValue(cleanRow[15]),
-        change_non_search_organic_impressions: cleanPercentage(cleanRow[16]),
+        change_non_search_organic_impressions: cleanNumericValue(cleanRow[16]),
         total_promoted_listings_impressions: cleanNumericValue(cleanRow[17]),
         total_organic_impressions_ebay: cleanNumericValue(cleanRow[18]),
         total_page_views: cleanNumericValue(cleanRow[19]),
@@ -149,22 +164,20 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
-      // Validate the created metric
+      // Log the processed values for debugging
+      console.log('Processed metric:', {
+        title: metric.listing_title,
+        impressions: metric.total_impressions_ebay,
+        raw_impressions: cleanRow[4]
+      });
+
+      // Validate numeric fields explicitly
       const numericFields = [
         'total_impressions_ebay',
         'click_through_rate',
         'quantity_sold',
         'sales_conversion_rate'
       ];
-
-      // Log the specific fields we're most interested in
-      console.log('Parsed numeric values:', {
-        title: metric.listing_title,
-        impressions: metric.total_impressions_ebay,
-        ctr: metric.click_through_rate,
-        quantity: metric.quantity_sold,
-        conversion: metric.sales_conversion_rate
-      });
 
       // Check for any NaN or invalid values
       for (const field of numericFields) {
@@ -180,6 +193,12 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
       continue;
     }
   }
+
+  // Log the final processed metrics for verification
+  console.log('Final processed metrics:', metrics.map(m => ({
+    title: m.listing_title,
+    impressions: m.total_impressions_ebay
+  })));
 
   return metrics;
 };
