@@ -1,15 +1,17 @@
-
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
-  // Remove any non-numeric characters except decimal point and minus sign
-  const cleaned = value.replace(/[^0-9.-]/g, '');
-  return cleaned ? parseInt(cleaned, 10) : 0;
+  // Remove any currency symbols and spaces, keep commas
+  const cleaned = value.replace(/[^0-9,.-]/g, '');
+  // Replace commas with empty string to handle numbers like "233,679"
+  const noCommas = cleaned.replace(/,/g, '');
+  return noCommas ? parseFloat(noCommas) : 0;
 };
 
 const cleanPercentage = (value: string): number => {
-  // Remove any non-numeric characters except decimal point and minus sign
+  // Remove any non-numeric characters except decimal point, minus sign and remove %
   const cleaned = value.replace(/[^0-9.-]/g, '');
+  // Convert percentage to decimal (e.g., 15.5% -> 0.155)
   return cleaned ? parseFloat(cleaned) / 100 : 0;
 };
 

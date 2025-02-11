@@ -81,7 +81,7 @@ const RawDataTable = ({
               <TableHead>End Date</TableHead>
               <TableHead>Impressions</TableHead>
               <TableHead>CTR</TableHead>
-              <TableHead>Sales</TableHead>
+              <TableHead>Quantity Sold</TableHead>
               <TableHead>Conv. Rate</TableHead>
             </TableRow>
           </TableHeader>
