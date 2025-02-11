@@ -1,36 +1,45 @@
+
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
-  // Return 0 for empty/null values
-  if (!value || value.trim() === '') {
+  console.log('Cleaning numeric value:', value);
+  
+  // Handle null/undefined
+  if (!value) {
+    console.log('Null/undefined value, returning 0');
     return 0;
   }
 
-  // Clean up the string and handle special cases
-  const cleanedValue = value.trim();
-  if (cleanedValue.toLowerCase() === 'n/a' || cleanedValue === '-') {
+  // Clean up the string
+  const cleanedValue = value.toString().trim();
+  
+  // Handle empty string or special cases
+  if (cleanedValue === '' || cleanedValue.toLowerCase() === 'n/a' || cleanedValue === '-') {
+    console.log('Empty or special case value, returning 0');
     return 0;
   }
 
   try {
-    // Remove any currency symbols and spaces
-    const withoutCurrency = cleanedValue.replace(/[$£€\s]/g, '');
+    // Remove any currency symbols, commas and spaces
+    const withoutCurrency = cleanedValue.replace(/[$£€,\s]/g, '');
+    console.log('Cleaned value for parsing:', withoutCurrency);
     
-    // Parse the number keeping commas for thousands
-    const parsedValue = parseFloat(withoutCurrency.replace(/,/g, ''));
+    const parsedValue = parseFloat(withoutCurrency);
     
     if (!isNaN(parsedValue) && isFinite(parsedValue)) {
+      console.log('Successfully parsed numeric value:', parsedValue);
       return parsedValue;
     }
     
+    console.log('Failed to parse value, returning 0');
     return 0;
   } catch (error) {
+    console.error('Error parsing numeric value:', error);
     return 0;
   }
 };
 
 const cleanPercentage = (value: string): number => {
-  // Return 0 for empty/null values
   if (!value || value.trim() === '') {
     return 0;
   }
@@ -88,6 +97,7 @@ const validateRow = (row: string[]): boolean => {
 };
 
 export const processCSVData = (rows: string[][]): ListingMetrics[] => {
+  console.log('Processing CSV rows:', rows.length);
   const metrics: ListingMetrics[] = [];
   const dataRows = rows.slice(1); // Skip header row
 
@@ -99,12 +109,16 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     }
 
     try {
+      console.log('Processing impressions value:', cleanRow[4]);
+      const impressions = cleanNumericValue(cleanRow[4]);
+      console.log('Processed impressions value:', impressions);
+
       const metric: ListingMetrics = {
         data_start_date: parseDate(cleanRow[0]),
         data_end_date: parseDate(cleanRow[1]),
         listing_title: cleanRow[2].trim(),
         ebay_item_id: cleanRow[3].trim(),
-        total_impressions_ebay: cleanNumericValue(cleanRow[4]),
+        total_impressions_ebay: impressions,
         click_through_rate: cleanPercentage(cleanRow[5]),
         quantity_sold: cleanNumericValue(cleanRow[6]),
         sales_conversion_rate: cleanPercentage(cleanRow[7]),
@@ -126,6 +140,7 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
+      console.log('Created metric with impressions:', metric.total_impressions_ebay);
       metrics.push(metric);
     } catch (error) {
       console.error('Error processing row:', error);
@@ -133,5 +148,6 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     }
   }
 
+  console.log('Processed metrics:', metrics);
   return metrics;
 };
