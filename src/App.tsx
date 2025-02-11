@@ -17,6 +17,7 @@ import Mapping from "./pages/Mapping";
 import Products from "./pages/Products";
 import ProductDashboard from "./components/products/ProductDashboard";
 import MetricPriorities from "./pages/MetricPriorities";
+import LeagueTable from "./pages/LeagueTable";
 
 const queryClient = new QueryClient();
 
@@ -142,6 +143,16 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <MetricPriorities />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/league-table"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <LeagueTable />
                 </Layout>
               </AuthGuard>
             }

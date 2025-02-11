@@ -112,6 +112,7 @@ export type Database = {
           id: string
           image_url: string | null
           import_batch_id: string | null
+          last_rank_update: string | null
           listing_title: string
           non_search_organic_impressions: number | null
           non_search_promoted_listings_impressions: number | null
@@ -123,10 +124,12 @@ export type Database = {
           previous_period_impressions: number | null
           previous_period_revenue: number | null
           previous_period_sales: number | null
+          previous_rank: number | null
           quantity_sold: number | null
           rank_by_conversion: number | null
           rank_by_impressions: number | null
           rank_by_sales: number | null
+          rank_change: number | null
           rest_of_search_slot_impressions: number | null
           revenue: number | null
           sales_conversion_rate: number | null
@@ -154,6 +157,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           import_batch_id?: string | null
+          last_rank_update?: string | null
           listing_title: string
           non_search_organic_impressions?: number | null
           non_search_promoted_listings_impressions?: number | null
@@ -165,10 +169,12 @@ export type Database = {
           previous_period_impressions?: number | null
           previous_period_revenue?: number | null
           previous_period_sales?: number | null
+          previous_rank?: number | null
           quantity_sold?: number | null
           rank_by_conversion?: number | null
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
+          rank_change?: number | null
           rest_of_search_slot_impressions?: number | null
           revenue?: number | null
           sales_conversion_rate?: number | null
@@ -196,6 +202,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           import_batch_id?: string | null
+          last_rank_update?: string | null
           listing_title?: string
           non_search_organic_impressions?: number | null
           non_search_promoted_listings_impressions?: number | null
@@ -207,10 +214,12 @@ export type Database = {
           previous_period_impressions?: number | null
           previous_period_revenue?: number | null
           previous_period_sales?: number | null
+          previous_rank?: number | null
           quantity_sold?: number | null
           rank_by_conversion?: number | null
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
+          rank_change?: number | null
           rest_of_search_slot_impressions?: number | null
           revenue?: number | null
           sales_conversion_rate?: number | null
@@ -257,6 +266,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      listing_rank_history: {
+        Row: {
+          click_through_rate: number | null
+          created_at: string
+          id: string
+          listing_id: string
+          page_views_promoted_ebay: number | null
+          page_views_promoted_outside_ebay: number | null
+          quantity_sold: number | null
+          rank: number
+          rank_date: string | null
+          sales_conversion_rate: number | null
+          total_impressions_ebay: number | null
+          total_page_views: number | null
+          user_id: string
+        }
+        Insert: {
+          click_through_rate?: number | null
+          created_at?: string
+          id?: string
+          listing_id: string
+          page_views_promoted_ebay?: number | null
+          page_views_promoted_outside_ebay?: number | null
+          quantity_sold?: number | null
+          rank: number
+          rank_date?: string | null
+          sales_conversion_rate?: number | null
+          total_impressions_ebay?: number | null
+          total_page_views?: number | null
+          user_id: string
+        }
+        Update: {
+          click_through_rate?: number | null
+          created_at?: string
+          id?: string
+          listing_id?: string
+          page_views_promoted_ebay?: number | null
+          page_views_promoted_outside_ebay?: number | null
+          quantity_sold?: number | null
+          rank?: number
+          rank_date?: string | null
+          sales_conversion_rate?: number | null
+          total_impressions_ebay?: number | null
+          total_page_views?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_listing"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "ebay_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_rank_history_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "ebay_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       metric_priorities: {
         Row: {
