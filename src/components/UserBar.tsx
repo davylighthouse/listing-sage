@@ -28,9 +28,9 @@ const UserBar = () => {
   };
 
   return (
-    <div className="fixed top-0 right-0 p-4 flex items-center gap-4 bg-white border-b border-l border-gray-200 rounded-bl-lg">
+    <div className="fixed bottom-4 left-4 p-4 flex items-center gap-4 bg-white border border-gray-200 rounded-lg w-56">
       {user?.email && (
-        <span className="text-sm text-gray-600">{user.email}</span>
+        <span className="text-sm text-gray-600 truncate">{user.email}</span>
       )}
       <Button
         variant="ghost"

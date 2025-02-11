@@ -92,39 +92,45 @@ const LeagueTable = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-start mb-6">
         <h1 className="text-2xl font-bold">League Table</h1>
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4">
           <Input
             placeholder="Search by title or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-64"
           />
-          <Select value={rankCriteria} onValueChange={setRankCriteria}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Rank by" />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              <SelectItem value="quantity_sold">Quantity Sold</SelectItem>
-              <SelectItem value="total_impressions_ebay">Impressions</SelectItem>
-              <SelectItem value="click_through_rate">CTR</SelectItem>
-              <SelectItem value="total_page_views">Page Views</SelectItem>
-              <SelectItem value="sales_conversion_rate">Conversion Rate</SelectItem>
-              <SelectItem value="page_views_promoted_ebay">Promoted Views (eBay)</SelectItem>
-              <SelectItem value="page_views_promoted_outside_ebay">Promoted Views (External)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Timeframe" />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              <SelectItem value="week">Weekly</SelectItem>
-              <SelectItem value="month">Monthly</SelectItem>
-              <SelectItem value="quarter">Quarterly</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Ranking Filter</label>
+            <Select value={rankCriteria} onValueChange={setRankCriteria}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Rank by" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="quantity_sold">Quantity Sold</SelectItem>
+                <SelectItem value="total_impressions_ebay">Impressions</SelectItem>
+                <SelectItem value="click_through_rate">CTR</SelectItem>
+                <SelectItem value="total_page_views">Page Views</SelectItem>
+                <SelectItem value="sales_conversion_rate">Conversion Rate</SelectItem>
+                <SelectItem value="page_views_promoted_ebay">Promoted Views (eBay)</SelectItem>
+                <SelectItem value="page_views_promoted_outside_ebay">Promoted Views (External)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Time Filter</label>
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Timeframe" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="week">Weekly</SelectItem>
+                <SelectItem value="month">Monthly</SelectItem>
+                <SelectItem value="quarter">Quarterly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -196,4 +202,3 @@ const LeagueTable = () => {
 };
 
 export default LeagueTable;
-
