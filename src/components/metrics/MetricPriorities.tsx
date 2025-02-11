@@ -5,18 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { DragDropContext, Droppable, Draggable } from "@dnd-kit/core";
 import { useAuth } from "@/hooks/useAuth";
 import { GripVertical } from "lucide-react";
+import { MetricName, MetricPriority } from "@/types/metrics";
 
-interface MetricPriority {
-  id: string;
-  metric: string;
-  priority: number;
-  weight: number;
-}
-
-const defaultPriorities = [
+const defaultPriorities: Array<{ metric: MetricName; priority: number }> = [
   { metric: 'quantity_sold', priority: 1 },
   { metric: 'sales_conversion_rate', priority: 2 },
   { metric: 'click_through_rate', priority: 3 },
@@ -50,7 +43,6 @@ export const MetricPriorities = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [priorities, setPriorities] = useState<MetricPriority[]>([]);
 
   const { data: metricPriorities, isLoading } = useQuery({
     queryKey: ['metric-priorities'],
@@ -64,7 +56,7 @@ export const MetricPriorities = () => {
         throw error;
       }
 
-      return data;
+      return data as MetricPriority[];
     },
   });
 
@@ -99,39 +91,6 @@ export const MetricPriorities = () => {
         variant: "destructive",
       });
       console.error('Error initializing priorities:', error);
-    }
-  });
-
-  const updatePrioritiesMutation = useMutation({
-    mutationFn: async (updatedPriorities: MetricPriority[]) => {
-      const { error } = await supabase
-        .from('metric_priorities')
-        .upsert(
-          updatedPriorities.map((p, index) => ({
-            id: p.id,
-            metric: p.metric,
-            priority: index + 1,
-            weight: p.weight,
-            user_id: user?.id
-          }))
-        );
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['metric-priorities'] });
-      toast({
-        title: "Success",
-        description: "Metric priorities have been updated.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update metric priorities.",
-        variant: "destructive",
-      });
-      console.error('Error updating priorities:', error);
     }
   });
 
