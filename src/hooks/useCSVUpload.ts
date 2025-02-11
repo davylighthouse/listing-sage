@@ -7,16 +7,17 @@ import { processCSVData } from "@/utils/csvProcessor";
 import { validateCSVFormat } from "@/utils/csvValidation";
 import { ListingMetrics } from "@/types/listing";
 import { useAuth } from "./useAuth";
+import { useFileHandling } from "./useFileHandling";
+import { useDataUpload } from "./useDataUpload";
 
 export const useCSVUpload = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isDragging, setIsDragging] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<string[][]>([]);
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const { uploadBatch } = useDataUpload();
 
   const processCSV = useCallback(async (file: File) => {
     if (!user?.id) {
@@ -33,7 +34,7 @@ export const useCSVUpload = () => {
       const text = await file.text();
       const rows = text.split('\n')
         .map(row => row.split(',').map(cell => cell.trim()))
-        .filter(row => row.length > 1); // Filter out empty rows
+        .filter(row => row.length > 1);
       
       const headers = rows[0];
       validateCSVFormat(headers);
@@ -60,81 +61,45 @@ export const useCSVUpload = () => {
       const metrics = processCSVData(rows);
       setProcessedData(metrics);
 
-      // Generate a unique batch ID for this import
       const importBatchId = crypto.randomUUID();
-
-      // Process records in very small batches with delays
-      const batchSize = 5; // Even smaller batch size
-      let successCount = 0;
-      let errorCount = 0;
-      let errors: string[] = [];
+      const batchSize = 5;
+      let totalSuccessCount = 0;
+      let totalErrorCount = 0;
+      let allErrors: string[] = [];
 
       for (let i = 0; i < metrics.length; i += batchSize) {
-        try {
-          const batch = metrics.slice(i, i + batchSize).map(metric => ({
-            user_id: user.id,
-            file_name: file.name,
-            import_batch_id: importBatchId,
-            ...metric,
-            data_start_date: new Date(metric.data_start_date).toISOString(),
-            data_end_date: new Date(metric.data_end_date).toISOString(),
-          }));
+        const batch = metrics.slice(i, i + batchSize);
+        const { successCount, errorCount, errors } = await uploadBatch(
+          batch,
+          user.id,
+          file.name,
+          importBatchId
+        );
 
-          const { data: results, error } = await supabase.rpc('upsert_ebay_listings_with_history', {
-            listings: batch
-          });
+        totalSuccessCount += successCount;
+        totalErrorCount += errorCount;
+        allErrors.push(...errors);
 
-          if (error) {
-            console.error('Batch error:', error);
-            errors.push(`Batch error: ${error.message}`);
-            continue;
-          }
-
-          // Process results for each record in the batch
-          if (results) {
-            results.forEach(result => {
-              if (result.success) {
-                successCount++;
-              } else {
-                errorCount++;
-                errors.push(`Error with item ${result.ebay_item_id}: ${result.message}`);
-              }
-            });
-          }
-
-          // Add a delay between batches to prevent overwhelming the database
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          console.log(`Processed ${successCount + errorCount} of ${metrics.length} records`);
-        } catch (error) {
-          console.error('Batch processing error:', error);
-          errors.push(`Batch processing error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log(`Processed ${totalSuccessCount + totalErrorCount} of ${metrics.length} records`);
       }
 
-      if (successCount === 0) {
+      if (totalSuccessCount === 0) {
         throw new Error('Failed to process any records successfully');
       }
 
-      // Show success toast with details
       toast({
         title: "Upload Complete",
-        description: `Successfully processed ${successCount} out of ${metrics.length} listings${
-          errorCount > 0 ? `. ${errorCount} records had errors.` : ''
+        description: `Successfully processed ${totalSuccessCount} out of ${metrics.length} listings${
+          totalErrorCount > 0 ? `. ${totalErrorCount} records had errors.` : ''
         }`,
-        ...(errorCount > 0 ? { variant: "warning" } : {})
+        variant: totalErrorCount > 0 ? "destructive" : "default"
       });
 
-      // If there were errors, show them in a separate toast
-      if (errors.length > 0) {
-        toast({
-          title: "Processing Errors",
-          description: `Some records had errors. Check the console for details.`,
-          variant: "destructive",
-        });
-        console.error('Processing errors:', errors);
+      if (allErrors.length > 0) {
+        console.error('Processing errors:', allErrors);
       }
 
-      // Navigate after successful upload
       navigate('/listings');
     } catch (error) {
       console.error('CSV Processing error:', error);
@@ -146,80 +111,16 @@ export const useCSVUpload = () => {
     } finally {
       setIsUploading(false);
     }
-  }, [user, toast, navigate]);
+  }, [user, toast, navigate, uploadBatch]);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    if (!user?.id) {
-      toast({
-        title: "Error",
-        description: "Please log in to upload files.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile?.type !== "text/csv") {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a CSV file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setFile(droppedFile);
-    await processCSV(droppedFile);
-  }, [user, toast, processCSV]);
-
-  const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user?.id) {
-      toast({
-        title: "Error",
-        description: "Please log in to upload files.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
-
-    if (selectedFile.type !== "text/csv") {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a CSV file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setFile(selectedFile);
-    await processCSV(selectedFile);
-  }, [user, toast, processCSV]);
+  const fileHandling = useFileHandling(user);
 
   return {
-    isDragging,
+    ...fileHandling,
     isUploading,
-    file,
     previewData,
     processedData,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop,
-    handleFileInput
+    handleDrop: (e: React.DragEvent) => fileHandling.handleDrop(e, processCSV),
+    handleFileInput: (e: React.ChangeEvent<HTMLInputElement>) => fileHandling.handleFileInput(e, processCSV)
   };
 };
