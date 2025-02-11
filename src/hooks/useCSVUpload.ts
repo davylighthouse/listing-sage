@@ -63,23 +63,26 @@ export const useCSVUpload = () => {
       // Generate a unique batch ID for this import
       const importBatchId = crypto.randomUUID();
 
-      // Insert the processed data into Supabase
-      const { error } = await supabase
-        .from('ebay_listings')
-        .insert(
-          metrics.map(metric => ({
-            user_id: user.id,
-            file_name: file.name,
-            import_batch_id: importBatchId,
-            ...metric,
-            data_start_date: new Date(metric.data_start_date).toISOString(),
-            data_end_date: new Date(metric.data_end_date).toISOString(),
-          }))
-        );
+      // Process records in smaller batches to avoid timeouts
+      const batchSize = 50;
+      for (let i = 0; i < metrics.length; i += batchSize) {
+        const batch = metrics.slice(i, i + batchSize).map(metric => ({
+          user_id: user.id,
+          file_name: file.name,
+          import_batch_id: importBatchId,
+          ...metric,
+          data_start_date: new Date(metric.data_start_date).toISOString(),
+          data_end_date: new Date(metric.data_end_date).toISOString(),
+        }));
 
-      if (error) {
-        console.error('Supabase insertion error:', error);
-        throw new Error('Failed to save data to database');
+        const { error } = await supabase.rpc('upsert_ebay_listings', {
+          listings: batch
+        });
+
+        if (error) {
+          console.error('Batch insert error:', error);
+          throw new Error(`Failed to save batch ${i / batchSize + 1}`);
+        }
       }
 
       toast({
@@ -176,3 +179,4 @@ export const useCSVUpload = () => {
     handleFileInput
   };
 };
+
