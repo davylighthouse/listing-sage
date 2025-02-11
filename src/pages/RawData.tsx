@@ -16,7 +16,10 @@ const RawDataPage = () => {
   const { data: importedFiles, isLoading: filesLoading, error: filesError, refetch: refetchFiles } = useQuery({
     queryKey: ["imported-files", user?.id],
     queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!user?.id) {
+        console.error("User not authenticated");
+        throw new Error("User not authenticated");
+      }
       console.log("Fetching files for user:", user.id);
 
       const { data, error } = await supabase
@@ -32,7 +35,7 @@ const RawDataPage = () => {
         throw error;
       }
 
-      console.log("Received files data:", data);
+      console.log("Raw files data:", data);
 
       // Group by import batch and count records
       const filesSummary = data.reduce((acc: Record<string, any>, curr) => {
@@ -49,7 +52,9 @@ const RawDataPage = () => {
         return acc;
       }, {});
 
-      return Object.values(filesSummary);
+      const result = Object.values(filesSummary);
+      console.log("Processed files summary:", result);
+      return result;
     },
     enabled: !!user?.id,
   });
@@ -58,7 +63,10 @@ const RawDataPage = () => {
   const { data: rawData, isLoading: dataLoading, error: dataError, refetch: refetchData } = useQuery({
     queryKey: ["raw-data", user?.id],
     queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!user?.id) {
+        console.error("User not authenticated");
+        throw new Error("User not authenticated");
+      }
       console.log("Fetching raw data for user:", user.id);
 
       const { data, error } = await supabase
@@ -72,7 +80,10 @@ const RawDataPage = () => {
         throw error;
       }
 
-      console.log("Received raw data:", data);
+      console.log("Raw data received:", data);
+      if (data) {
+        console.log("Sample total_impressions value:", data[0]?.total_impressions_ebay);
+      }
       return data;
     },
     enabled: !!user?.id,
@@ -93,6 +104,7 @@ const RawDataPage = () => {
     if (!user?.id) return;
 
     try {
+      console.log("Deleting file with batch ID:", batchId);
       const { error } = await supabase
         .from('ebay_listings')
         .delete()
@@ -144,6 +156,7 @@ const RawDataPage = () => {
     if (!user?.id || selectedEntries.length === 0) return;
 
     try {
+      console.log("Deleting selected entries:", selectedEntries);
       const { error } = await supabase
         .from('ebay_listings')
         .delete()
