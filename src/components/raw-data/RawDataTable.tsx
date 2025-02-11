@@ -17,6 +17,22 @@ interface RawDataEntry {
   click_through_rate: number;
   quantity_sold: number;
   sales_conversion_rate: number;
+  top_20_search_slot_promoted_impressions: number;
+  change_top_20_search_slot_promoted_impressions: number;
+  top_20_search_slot_organic_impressions: number;
+  change_top_20_search_slot_impressions: number;
+  rest_of_search_slot_impressions: number;
+  non_search_promoted_listings_impressions: number;
+  change_non_search_promoted_listings_impressions: number;
+  non_search_organic_impressions: number;
+  change_non_search_organic_impressions: number;
+  total_promoted_listings_impressions: number;
+  total_organic_impressions_ebay: number;
+  total_page_views: number;
+  page_views_promoted_ebay: number;
+  page_views_promoted_outside_ebay: number;
+  page_views_organic_ebay: number;
+  page_views_organic_outside_ebay: number;
 }
 
 interface RawDataTableProps {
@@ -37,7 +53,6 @@ const formatPercentage = (value: number) => {
 };
 
 const formatNumber = (value: number) => {
-  console.log('Formatting number value:', value, typeof value);
   return value.toLocaleString('en-US');
 };
 
@@ -49,8 +64,6 @@ const RawDataTable = ({
   onSelectAll,
   onDeleteSelected
 }: RawDataTableProps) => {
-  console.log('Raw data received in table:', data);
-  
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -82,44 +95,73 @@ const RawDataTable = ({
               <TableHead>Title</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
-              <TableHead>Impressions</TableHead>
+              <TableHead>Total Impressions</TableHead>
               <TableHead>CTR</TableHead>
               <TableHead>Quantity Sold</TableHead>
               <TableHead>Conv. Rate</TableHead>
+              <TableHead>Top 20 Promoted</TableHead>
+              <TableHead>Top 20 Promoted Change</TableHead>
+              <TableHead>Top 20 Organic</TableHead>
+              <TableHead>Top 20 Organic Change</TableHead>
+              <TableHead>Rest of Search</TableHead>
+              <TableHead>Non-Search Promoted</TableHead>
+              <TableHead>Non-Search Promoted Change</TableHead>
+              <TableHead>Non-Search Organic</TableHead>
+              <TableHead>Non-Search Organic Change</TableHead>
+              <TableHead>Total Promoted</TableHead>
+              <TableHead>Total Organic</TableHead>
+              <TableHead>Total Page Views</TableHead>
+              <TableHead>PV Promoted eBay</TableHead>
+              <TableHead>PV Promoted Outside</TableHead>
+              <TableHead>PV Organic eBay</TableHead>
+              <TableHead>PV Organic Outside</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center">Loading...</TableCell>
+                <TableCell colSpan={27} className="text-center">Loading...</TableCell>
               </TableRow>
             ) : data?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center">No data available</TableCell>
+                <TableCell colSpan={27} className="text-center">No data available</TableCell>
               </TableRow>
-            ) : data?.map((entry) => {
-              console.log('Rendering entry with impressions:', entry.total_impressions_ebay);
-              return (
-                <TableRow key={`${entry.ebay_item_id}-${entry.created_at}`}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedEntries.includes(entry.id)}
-                      onCheckedChange={() => onSelectEntry(entry.id)}
-                    />
-                  </TableCell>
-                  <TableCell>{formatDate(entry.created_at)}</TableCell>
-                  <TableCell>{entry.file_name}</TableCell>
-                  <TableCell>{entry.ebay_item_id}</TableCell>
-                  <TableCell>{entry.listing_title}</TableCell>
-                  <TableCell>{formatDate(entry.data_start_date)}</TableCell>
-                  <TableCell>{formatDate(entry.data_end_date)}</TableCell>
-                  <TableCell>{formatNumber(entry.total_impressions_ebay)}</TableCell>
-                  <TableCell>{formatPercentage(entry.click_through_rate)}</TableCell>
-                  <TableCell>{formatNumber(entry.quantity_sold)}</TableCell>
-                  <TableCell>{formatPercentage(entry.sales_conversion_rate)}</TableCell>
-                </TableRow>
-              );
-            })}
+            ) : data?.map((entry) => (
+              <TableRow key={entry.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedEntries.includes(entry.id)}
+                    onCheckedChange={() => onSelectEntry(entry.id)}
+                  />
+                </TableCell>
+                <TableCell>{formatDate(entry.created_at)}</TableCell>
+                <TableCell>{entry.file_name}</TableCell>
+                <TableCell>{entry.ebay_item_id}</TableCell>
+                <TableCell>{entry.listing_title}</TableCell>
+                <TableCell>{formatDate(entry.data_start_date)}</TableCell>
+                <TableCell>{formatDate(entry.data_end_date)}</TableCell>
+                <TableCell>{formatNumber(entry.total_impressions_ebay)}</TableCell>
+                <TableCell>{formatPercentage(entry.click_through_rate)}</TableCell>
+                <TableCell>{formatNumber(entry.quantity_sold)}</TableCell>
+                <TableCell>{formatPercentage(entry.sales_conversion_rate)}</TableCell>
+                <TableCell>{formatNumber(entry.top_20_search_slot_promoted_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.change_top_20_search_slot_promoted_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.top_20_search_slot_organic_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.change_top_20_search_slot_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.rest_of_search_slot_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.non_search_promoted_listings_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.change_non_search_promoted_listings_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.non_search_organic_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.change_non_search_organic_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.total_promoted_listings_impressions)}</TableCell>
+                <TableCell>{formatNumber(entry.total_organic_impressions_ebay)}</TableCell>
+                <TableCell>{formatNumber(entry.total_page_views)}</TableCell>
+                <TableCell>{formatNumber(entry.page_views_promoted_ebay)}</TableCell>
+                <TableCell>{formatNumber(entry.page_views_promoted_outside_ebay)}</TableCell>
+                <TableCell>{formatNumber(entry.page_views_organic_ebay)}</TableCell>
+                <TableCell>{formatNumber(entry.page_views_organic_outside_ebay)}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
