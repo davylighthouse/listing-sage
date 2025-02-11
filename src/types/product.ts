@@ -20,4 +20,6 @@ export interface ProductListing {
 export interface AvailableListing {
   ebay_item_id: string;
   listing_title: string;
+  selected?: boolean;
 }
+

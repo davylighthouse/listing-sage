@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +22,7 @@ const ProductsPage = () => {
   const [open, setOpen] = useState(false);
   const [listingDialogOpen, setListingDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedListings, setSelectedListings] = useState<string[]>([]);
 
   const { data: products, refetch } = useQuery({
     queryKey: ["products", user?.id],
@@ -128,6 +128,46 @@ const ProductsPage = () => {
     }
   };
 
+  const handleAddListings = async () => {
+    if (!selectedProduct?.id || !user?.id || selectedListings.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from("product_listings")
+        .insert(
+          selectedListings.map(ebayItemId => ({
+            product_id: selectedProduct.id,
+            ebay_item_id: ebayItemId,
+          }))
+        );
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `${selectedListings.length} listing(s) added to product successfully`,
+      });
+      setSelectedListings([]);
+      refetchProductListings();
+      setListingDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding listings to product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add listings to product",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleListingSelection = (ebayItemId: string) => {
+    setSelectedListings(prev => 
+      prev.includes(ebayItemId)
+        ? prev.filter(id => id !== ebayItemId)
+        : [...prev, ebayItemId]
+    );
+  };
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
@@ -154,6 +194,7 @@ const ProductsPage = () => {
             selectedProductId={selectedProduct?.id}
             onAddListing={(product) => {
               setSelectedProduct(product);
+              setSelectedListings([]);
               setListingDialogOpen(true);
             }}
           />
@@ -164,30 +205,43 @@ const ProductsPage = () => {
       <Dialog open={listingDialogOpen} onOpenChange={setListingDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Add Listing to {selectedProduct?.name}</DialogTitle>
+            <DialogTitle>Add Listings to {selectedProduct?.name}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[400px] overflow-y-auto">
-            {availableListings?.map((listing) => (
-              <div
-                key={listing.ebay_item_id}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
-              >
-                <div>
-                  <div className="font-medium">{listing.ebay_item_id}</div>
-                  <div className="text-sm text-gray-500">{listing.listing_title}</div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    handleAddListing(listing.ebay_item_id);
-                    setListingDialogOpen(false);
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add
-                </Button>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                {selectedListings.length} listing(s) selected
               </div>
-            ))}
+              <Button
+                onClick={handleAddListings}
+                disabled={selectedListings.length === 0}
+              >
+                Add Selected Listings
+              </Button>
+            </div>
+            <div className="max-h-[400px] overflow-y-auto space-y-2">
+              {availableListings?.map((listing) => (
+                <div
+                  key={listing.ebay_item_id}
+                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                    selectedListings.includes(listing.ebay_item_id)
+                      ? "bg-primary/10"
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => toggleListingSelection(listing.ebay_item_id)}
+                >
+                  <div>
+                    <div className="font-medium">{listing.ebay_item_id}</div>
+                    <div className="text-sm text-gray-500">{listing.listing_title}</div>
+                  </div>
+                  <div className="w-5 h-5 rounded border flex items-center justify-center">
+                    {selectedListings.includes(listing.ebay_item_id) && (
+                      <div className="w-3 h-3 bg-primary rounded-sm" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

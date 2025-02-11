@@ -48,7 +48,7 @@ const ProductCard = ({
           onClick={() => onAddListing(product)}
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add Listing
+          Add Listings
         </Button>
       </div>
 
