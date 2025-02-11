@@ -124,11 +124,14 @@ const Dashboard = () => {
         totalImpressions={averages.total_impressions}
       />
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <TopListingsTable data={data} rankCriteria={rankCriteria} />
+        <ImpressionsPieChart data={impressionsSplit} />
+      </div>
+
       <div className="grid grid-cols-1 gap-6">
         <ImpressionsBarChart data={data} />
-        <TopListingsTable data={data} rankCriteria={rankCriteria} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ImpressionsPieChart data={impressionsSplit} />
           <CTRLineChart data={data} />
         </div>
       </div>
