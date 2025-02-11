@@ -49,7 +49,7 @@ const UserBar = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => navigate("/settings")}>
+          <DropdownMenuItem onSelect={() => navigate("/auth/settings")}>
             Change Password
           </DropdownMenuItem>
         </DropdownMenuContent>

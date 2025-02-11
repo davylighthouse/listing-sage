@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +17,13 @@ import { Settings } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const isSettingsPage = window.location.pathname.includes('settings');
+  const isSettingsPage = location.pathname === "/auth/settings";
 
   // Effect to set email when user is available
   useEffect(() => {
@@ -146,7 +147,7 @@ const Auth = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => navigate("/settings")}>
+                <DropdownMenuItem onSelect={() => navigate("/auth/settings")}>
                   Reset Password
                 </DropdownMenuItem>
               </DropdownMenuContent>
