@@ -143,18 +143,18 @@ const LeagueTable = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Rank</TableHead>
-              <TableHead>Change</TableHead>
+              <TableHead className="text-center">Rank</TableHead>
+              <TableHead className="text-center">Change</TableHead>
               <TableHead>Title</TableHead>
-              <TableHead>Item ID</TableHead>
-              <TableHead>Quantity Sold</TableHead>
-              <TableHead>Impressions</TableHead>
-              <TableHead>CTR</TableHead>
-              <TableHead>Page Views</TableHead>
-              <TableHead>Conv. Rate</TableHead>
-              <TableHead>Promoted Views (eBay)</TableHead>
-              <TableHead>Promoted Views (External)</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-center">Item ID</TableHead>
+              <TableHead className="text-center">Quantity Sold</TableHead>
+              <TableHead className="text-center">Impressions</TableHead>
+              <TableHead className="text-center">CTR</TableHead>
+              <TableHead className="text-center">Page Views</TableHead>
+              <TableHead className="text-center">Conv. Rate</TableHead>
+              <TableHead className="text-center">Promoted Views (eBay)</TableHead>
+              <TableHead className="text-center">Promoted Views (External)</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -166,27 +166,27 @@ const LeagueTable = () => {
               </TableRow>
             ) : filteredListings?.map((listing, index) => (
               <TableRow key={listing.id}>
-                <TableCell>{getRankDisplay(index + 1)}</TableCell>
-                <TableCell className="flex items-center gap-1">
+                <TableCell className="text-center">{getRankDisplay(index + 1)}</TableCell>
+                <TableCell className="flex items-center justify-center gap-1">
                   {getRankChangeIcon(listing.rank_change)}
                   {listing.rank_change ? Math.abs(listing.rank_change) : "-"}
                 </TableCell>
                 <TableCell className="max-w-xs truncate">
                   {listing.listing_title}
                 </TableCell>
-                <TableCell>{listing.ebay_item_id}</TableCell>
-                <TableCell>{formatValue(listing.quantity_sold)}</TableCell>
-                <TableCell>{formatValue(listing.total_impressions_ebay)}</TableCell>
-                <TableCell>{formatValue(listing.click_through_rate, "percentage")}</TableCell>
-                <TableCell>{formatValue(listing.total_page_views)}</TableCell>
-                <TableCell>
+                <TableCell className="text-center">{listing.ebay_item_id}</TableCell>
+                <TableCell className="text-center">{formatValue(listing.quantity_sold)}</TableCell>
+                <TableCell className="text-center">{formatValue(listing.total_impressions_ebay)}</TableCell>
+                <TableCell className="text-center">{formatValue(listing.click_through_rate, "percentage")}</TableCell>
+                <TableCell className="text-center">{formatValue(listing.total_page_views)}</TableCell>
+                <TableCell className="text-center">
                   {formatValue(listing.sales_conversion_rate, "percentage")}
                 </TableCell>
-                <TableCell>{formatValue(listing.page_views_promoted_ebay)}</TableCell>
-                <TableCell>
+                <TableCell className="text-center">{formatValue(listing.page_views_promoted_ebay)}</TableCell>
+                <TableCell className="text-center">
                   {formatValue(listing.page_views_promoted_outside_ebay)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <Button
                     variant="ghost"
                     size="sm"
