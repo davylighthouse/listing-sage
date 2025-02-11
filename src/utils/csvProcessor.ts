@@ -36,9 +36,10 @@ const cleanNumericValue = (value: string): number => {
 
 const cleanPercentage = (value: string): number => {
   if (!value || value.trim() === "") return 0;
-  const cleaned = value.replace(/[^0-9.-]/g, "");
-  const numericValue = cleaned ? parseFloat(cleaned) : null;
-  return numericValue !== null ? numericValue / 100 : 0;
+  // Remove any % sign and handle commas before converting to decimal
+  const cleaned = value.replace(/%/g, "").replace(/,/g, "");
+  const numericValue = cleaned ? parseFloat(cleaned) : 0;
+  return numericValue / 100; // Convert percentage to decimal
 };
 
 const parseDate = (dateStr: string): string => {
