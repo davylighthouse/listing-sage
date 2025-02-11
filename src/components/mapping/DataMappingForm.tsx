@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,21 +28,31 @@ export const DataMappingForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [mappings, setMappings] = useState<Record<string, string>>({});
-  
-  // Mock columns for demonstration - in real use, these would come from your CSV preview
-  const availableColumns = [
-    "Column A",
-    "Column B",
-    "Column C",
-    "Item Number",
-    "Product Title",
-    "Date Range Start",
-    "Date Range End",
-    "Views",
-    "Click Through Rate",
-    "Sales",
-    "Conversion",
-  ];
+  const [availableColumns, setAvailableColumns] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchLatestHeaders = async () => {
+      if (!user?.id) return;
+
+      const { data, error } = await supabase
+        .from('raw_data')
+        .select('headers')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching headers:', error);
+        return;
+      }
+
+      if (data?.headers) {
+        setAvailableColumns(data.headers);
+      }
+    };
+
+    fetchLatestHeaders();
+  }, [user?.id]);
 
   const handleSaveMapping = async () => {
     if (!user?.id) {
@@ -102,10 +112,10 @@ export const DataMappingForm = () => {
                 value={mappings[field.key]}
                 onValueChange={(value) => setMappings((prev) => ({ ...prev, [field.key]: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select a column" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border shadow-md">
                   {availableColumns.map((column) => (
                     <SelectItem key={column} value={column}>
                       {column}
@@ -124,3 +134,4 @@ export const DataMappingForm = () => {
     </div>
   );
 };
+
