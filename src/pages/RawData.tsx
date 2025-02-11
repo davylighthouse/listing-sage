@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,18 @@ interface ImportedFile {
   created_at: string;
   record_count: number;
 }
+
+const formatDate = (date: string) => {
+  return format(new Date(date), 'dd-MM-yyyy');
+};
+
+const formatPercentage = (value: number) => {
+  return `${(value * 100).toFixed(2)}%`;
+};
+
+const formatNumber = (value: number) => {
+  return value.toLocaleString('en-US');
+};
 
 const RawDataPage = () => {
   const { toast } = useToast();
@@ -208,7 +221,7 @@ const RawDataPage = () => {
               <TableRow key={file.import_batch_id}>
                 <TableCell>{file.file_name}</TableCell>
                 <TableCell>{format(new Date(file.created_at), 'PPp')}</TableCell>
-                <TableCell>{file.record_count}</TableCell>
+                <TableCell>{formatNumber(file.record_count)}</TableCell>
                 <TableCell>
                   <Button
                     variant="destructive"
@@ -255,18 +268,19 @@ const RawDataPage = () => {
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead>Impressions</TableHead>
-                <TableHead>Page Views</TableHead>
+                <TableHead>CTR</TableHead>
                 <TableHead>Sales</TableHead>
+                <TableHead>Conv. Rate</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {dataLoading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center">Loading...</TableCell>
+                  <TableCell colSpan={11} className="text-center">Loading...</TableCell>
                 </TableRow>
               ) : rawData?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center">No data available</TableCell>
+                  <TableCell colSpan={11} className="text-center">No data available</TableCell>
                 </TableRow>
               ) : rawData?.map((entry) => (
                 <TableRow key={`${entry.ebay_item_id}-${entry.created_at}`}>
@@ -276,15 +290,16 @@ const RawDataPage = () => {
                       onCheckedChange={() => handleSelectEntry(entry.id)}
                     />
                   </TableCell>
-                  <TableCell>{format(new Date(entry.created_at), 'PPp')}</TableCell>
+                  <TableCell>{format(new Date(entry.created_at), 'dd-MM-yyyy')}</TableCell>
                   <TableCell>{entry.file_name}</TableCell>
                   <TableCell>{entry.ebay_item_id}</TableCell>
                   <TableCell>{entry.listing_title}</TableCell>
-                  <TableCell>{format(new Date(entry.data_start_date), 'PP')}</TableCell>
-                  <TableCell>{format(new Date(entry.data_end_date), 'PP')}</TableCell>
-                  <TableCell>{entry.total_impressions_ebay}</TableCell>
-                  <TableCell>{entry.total_page_views}</TableCell>
-                  <TableCell>{entry.quantity_sold}</TableCell>
+                  <TableCell>{formatDate(entry.data_start_date)}</TableCell>
+                  <TableCell>{formatDate(entry.data_end_date)}</TableCell>
+                  <TableCell>{formatNumber(entry.total_impressions_ebay)}</TableCell>
+                  <TableCell>{formatPercentage(entry.click_through_rate)}</TableCell>
+                  <TableCell>{formatNumber(entry.quantity_sold)}</TableCell>
+                  <TableCell>{formatPercentage(entry.sales_conversion_rate)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

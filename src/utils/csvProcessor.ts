@@ -4,13 +4,22 @@ import { ListingMetrics } from "@/types/listing";
 const cleanNumericValue = (value: string): number => {
   // Remove any non-numeric characters except decimal point and minus sign
   const cleaned = value.replace(/[^0-9.-]/g, '');
-  return cleaned ? parseFloat(cleaned) : 0;
+  return cleaned ? parseInt(cleaned, 10) : 0;
 };
 
 const cleanPercentage = (value: string): number => {
   // Remove any non-numeric characters except decimal point and minus sign
   const cleaned = value.replace(/[^0-9.-]/g, '');
   return cleaned ? parseFloat(cleaned) / 100 : 0;
+};
+
+const parseDate = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    console.warn('Invalid date:', dateStr);
+    return dateStr;
+  }
+  return date.toISOString();
 };
 
 export const processCSVData = (rows: string[][]): ListingMetrics[] => {
@@ -21,7 +30,6 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     // Filter out empty values that might come from trailing commas
     const cleanRow = row.filter(cell => cell !== '');
     
-    // Instead of requiring exact column count, ensure we have at least the required columns
     if (cleanRow.length < 24) {
       console.warn('Skipping row with insufficient columns:', cleanRow.length, 'columns found (minimum 24 required)');
       continue;
@@ -29,8 +37,8 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
 
     try {
       const metric: ListingMetrics = {
-        data_start_date: cleanRow[0],
-        data_end_date: cleanRow[1],
+        data_start_date: parseDate(cleanRow[0]),
+        data_end_date: parseDate(cleanRow[1]),
         listing_title: cleanRow[2].trim(),
         ebay_item_id: cleanRow[3].trim(),
         total_impressions_ebay: cleanNumericValue(cleanRow[4]),
