@@ -63,38 +63,51 @@ export const useCSVUpload = () => {
       // Generate a unique batch ID for this import
       const importBatchId = crypto.randomUUID();
 
-      // Process records in smaller batches to avoid timeouts
-      const batchSize = 10; // Reduced from 50 to 10
+      // Process records in very small batches with delays
+      const batchSize = 5; // Even smaller batch size
+      let successCount = 0;
+
       for (let i = 0; i < metrics.length; i += batchSize) {
-        const batch = metrics.slice(i, i + batchSize).map(metric => ({
-          user_id: user.id,
-          file_name: file.name,
-          import_batch_id: importBatchId,
-          ...metric,
-          data_start_date: new Date(metric.data_start_date).toISOString(),
-          data_end_date: new Date(metric.data_end_date).toISOString(),
-        }));
+        try {
+          const batch = metrics.slice(i, i + batchSize).map(metric => ({
+            user_id: user.id,
+            file_name: file.name,
+            import_batch_id: importBatchId,
+            ...metric,
+            data_start_date: new Date(metric.data_start_date).toISOString(),
+            data_end_date: new Date(metric.data_end_date).toISOString(),
+          }));
 
-        // Add delay between batches to prevent overloading
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Insert each record individually to avoid stack depth issues
+          for (const record of batch) {
+            const { error } = await supabase.rpc('upsert_ebay_listings_with_history', {
+              listings: [record]
+            });
+
+            if (error) {
+              console.error('Record insert error:', error);
+              continue; // Continue with next record even if one fails
+            }
+            successCount++;
+          }
+
+          // Add a longer delay between batches
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          console.log(`Processed ${successCount} of ${metrics.length} records`);
+        } catch (error) {
+          console.error('Batch processing error:', error);
+          // Continue with next batch even if one fails
         }
+      }
 
-        const { error } = await supabase.rpc('upsert_ebay_listings_with_history', {
-          listings: batch
-        });
-
-        if (error) {
-          console.error('Batch insert error:', error);
-          throw new Error(`Failed to save batch ${i / batchSize + 1}`);
-        }
-
-        console.log(`Successfully processed batch ${i / batchSize + 1} of ${Math.ceil(metrics.length / batchSize)}`);
+      if (successCount === 0) {
+        throw new Error('Failed to process any records');
       }
 
       toast({
-        title: "Success",
-        description: `Successfully processed ${metrics.length} listings`,
+        title: "Upload Complete",
+        description: `Successfully processed ${successCount} out of ${metrics.length} listings`,
       });
 
       // Navigate after successful upload
