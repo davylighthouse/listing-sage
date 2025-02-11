@@ -1,18 +1,22 @@
+
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
-  // Remove any currency symbols and spaces, keep commas
+  // First remove any currency symbols, spaces, and percentage signs
   const cleaned = value.replace(/[^0-9,.-]/g, '');
   // Replace commas with empty string to handle numbers like "233,679"
   const noCommas = cleaned.replace(/,/g, '');
+  console.log('Cleaning numeric value:', { original: value, cleaned, noCommas, result: parseFloat(noCommas) });
   return noCommas ? parseFloat(noCommas) : 0;
 };
 
 const cleanPercentage = (value: string): number => {
-  // Remove any non-numeric characters except decimal point, minus sign and remove %
+  // Remove any non-numeric characters except decimal point and minus sign
   const cleaned = value.replace(/[^0-9.-]/g, '');
-  // Convert percentage to decimal (e.g., 15.5% -> 0.155)
-  return cleaned ? parseFloat(cleaned) / 100 : 0;
+  // Convert percentage to decimal (e.g., 15.5 -> 0.155)
+  const result = cleaned ? parseFloat(cleaned) / 100 : 0;
+  console.log('Cleaning percentage:', { original: value, cleaned, result });
+  return result;
 };
 
 const parseDate = (dateStr: string): string => {
@@ -27,6 +31,8 @@ const parseDate = (dateStr: string): string => {
 export const processCSVData = (rows: string[][]): ListingMetrics[] => {
   const metrics: ListingMetrics[] = [];
   const dataRows = rows.slice(1); // Skip header row
+
+  console.log('Processing CSV data rows:', dataRows.length);
 
   for (const row of dataRows) {
     // Filter out empty values that might come from trailing commas
@@ -65,6 +71,14 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
+      console.log('Processed row:', {
+        itemId: metric.ebay_item_id,
+        impressions: metric.total_impressions_ebay,
+        ctr: metric.click_through_rate,
+        quantitySold: metric.quantity_sold,
+        conversionRate: metric.sales_conversion_rate
+      });
+
       metrics.push(metric);
     } catch (error) {
       console.error('Error processing row:', cleanRow, error);
@@ -80,3 +94,4 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
 
   return metrics;
 };
+
