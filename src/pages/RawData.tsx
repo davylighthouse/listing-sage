@@ -21,10 +21,11 @@ const RawDataPage = () => {
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
 
   // Query for imported files summary
-  const { data: importedFiles, isLoading: filesLoading, refetch: refetchFiles } = useQuery({
+  const { data: importedFiles, isLoading: filesLoading, error: filesError, refetch: refetchFiles } = useQuery({
     queryKey: ["imported-files", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
+      console.log("Fetching files for user:", user.id);
 
       const { data, error } = await supabase
         .from('ebay_listings')
@@ -34,7 +35,12 @@ const RawDataPage = () => {
         .filter('file_name', 'not.is', null)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching files:", error);
+        throw error;
+      }
+
+      console.log("Received files data:", data);
 
       // Group by import batch and count records
       const filesSummary = data.reduce((acc: Record<string, ImportedFile>, curr) => {
@@ -57,10 +63,11 @@ const RawDataPage = () => {
   });
 
   // Query for raw data entries
-  const { data: rawData, isLoading: dataLoading } = useQuery({
+  const { data: rawData, isLoading: dataLoading, error: dataError } = useQuery({
     queryKey: ["raw-data", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
+      console.log("Fetching raw data for user:", user.id);
 
       const { data, error } = await supabase
         .from('ebay_listings')
@@ -68,11 +75,27 @@ const RawDataPage = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching raw data:", error);
+        throw error;
+      }
+
+      console.log("Received raw data:", data);
       return data;
     },
     enabled: !!user?.id,
   });
+
+  // Display any errors
+  if (filesError || dataError) {
+    const error = filesError || dataError;
+    console.error("Query error:", error);
+    toast({
+      title: "Error loading data",
+      description: error instanceof Error ? error.message : "Failed to load data",
+      variant: "destructive",
+    });
+  }
 
   const handleDeleteFile = async (batchId: string) => {
     if (!user?.id) return;
@@ -84,7 +107,10 @@ const RawDataPage = () => {
         .eq('user_id', user.id)
         .eq('import_batch_id', batchId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting file:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -119,6 +145,10 @@ const RawDataPage = () => {
             {filesLoading ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center">Loading...</TableCell>
+              </TableRow>
+            ) : importedFiles?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">No files imported yet</TableCell>
               </TableRow>
             ) : importedFiles?.map((file) => (
               <TableRow key={file.import_batch_id}>
@@ -162,6 +192,10 @@ const RawDataPage = () => {
                 <TableRow>
                   <TableCell colSpan={9} className="text-center">Loading...</TableCell>
                 </TableRow>
+              ) : rawData?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center">No data available</TableCell>
+                </TableRow>
               ) : rawData?.map((entry) => (
                 <TableRow key={`${entry.ebay_item_id}-${entry.created_at}`}>
                   <TableCell>{format(new Date(entry.created_at), 'PPp')}</TableCell>
@@ -184,3 +218,4 @@ const RawDataPage = () => {
 };
 
 export default RawDataPage;
+
