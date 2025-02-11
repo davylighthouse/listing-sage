@@ -12,6 +12,10 @@ export interface ProductListing {
   ebay_item_id: string;
   ebay_listings: {
     listing_title: string;
+    total_impressions_ebay?: number;
+    total_page_views?: number;
+    quantity_sold?: number;
+    click_through_rate?: number;
   };
   product_id: string;
   created_at: string;
@@ -22,4 +26,3 @@ export interface AvailableListing {
   listing_title: string;
   selected?: boolean;
 }
-

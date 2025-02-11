@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Upload, Plus } from "lucide-react";
 import { Product, ProductListing } from "@/types/product";
 import ProductListings from "./ProductListings";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   product: Product;
@@ -17,8 +20,26 @@ const ProductCard = ({
   selectedProductId,
   onAddListing 
 }: ProductCardProps) => {
+  const navigate = useNavigate();
+
+  const { data: listingCount } = useQuery({
+    queryKey: ["product-listing-count", product.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .rpc('get_product_listing_count', {
+          product_id: product.id
+        });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
-    <div className="bg-white p-4 rounded-lg border shadow-sm">
+    <div 
+      className="bg-white p-4 rounded-lg border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+      onClick={() => navigate(`/products/${product.id}`)}
+    >
       <div className="flex items-center gap-4">
         <div className="w-24 h-24 rounded-lg border bg-gray-50 flex items-center justify-center overflow-hidden">
           {product.image_url ? (
@@ -36,16 +57,20 @@ const ProductCard = ({
           {product.sku && (
             <div className="text-sm text-gray-500">SKU: {product.sku}</div>
           )}
-          {product.category && (
-            <div className="text-xs text-gray-400 mt-1">
-              Category: {product.category}
-            </div>
-          )}
+          <div className="text-xs text-gray-400 mt-1">
+            Category: {product.category || "Uncategorized"}
+          </div>
+          <div className="text-xs text-gray-400">
+            Associated Listings: {listingCount || 0}
+          </div>
         </div>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onAddListing(product)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddListing(product);
+          }}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Listings
