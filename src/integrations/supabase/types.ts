@@ -198,6 +198,68 @@ export type Database = {
         }
         Relationships: []
       }
+      product_listings: {
+        Row: {
+          created_at: string
+          ebay_item_id: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          ebay_item_id: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          ebay_item_id?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_listings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          sku: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          sku?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          sku?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       raw_data: {
         Row: {
           created_at: string

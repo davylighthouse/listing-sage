@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { BarChart3, FileSpreadsheet, Upload, List, Map } from "lucide-react";
+import { BarChart3, FileSpreadsheet, Upload, List, Map, Package } from "lucide-react";
 
 const Navigation = () => {
   const location = useLocation();
@@ -10,6 +10,7 @@ const Navigation = () => {
     { to: "/upload", label: "Upload", icon: Upload },
     { to: "/data", label: "Raw Data", icon: FileSpreadsheet },
     { to: "/listings", label: "Listings", icon: List },
+    { to: "/products", label: "Products", icon: Package },
     { to: "/mapping", label: "Mapping", icon: Map },
   ];
 
@@ -42,4 +43,3 @@ const Navigation = () => {
 };
 
 export default Navigation;
-

@@ -14,6 +14,7 @@ import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import RawData from "./pages/RawData";
 import Mapping from "./pages/Mapping";
+import Products from "./pages/Products";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,16 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <RawData />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/products"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <Products />
                 </Layout>
               </AuthGuard>
             }
