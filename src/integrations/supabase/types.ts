@@ -36,6 +36,39 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_preferences: {
+        Row: {
+          created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
+          default_sort_metric: string | null
+          default_view: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          default_sort_metric?: string | null
+          default_view?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          default_sort_metric?: string | null
+          default_view?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ebay_column_mappings: {
         Row: {
           column_name: string
@@ -65,6 +98,7 @@ export type Database = {
       }
       ebay_listings: {
         Row: {
+          average_price: number | null
           change_non_search_organic_impressions: number | null
           change_non_search_promoted_listings_impressions: number | null
           change_top_20_search_slot_impressions: number | null
@@ -85,8 +119,16 @@ export type Database = {
           page_views_organic_outside_ebay: number | null
           page_views_promoted_ebay: number | null
           page_views_promoted_outside_ebay: number | null
+          performance_score: number | null
+          previous_period_impressions: number | null
+          previous_period_revenue: number | null
+          previous_period_sales: number | null
           quantity_sold: number | null
+          rank_by_conversion: number | null
+          rank_by_impressions: number | null
+          rank_by_sales: number | null
           rest_of_search_slot_impressions: number | null
+          revenue: number | null
           sales_conversion_rate: number | null
           top_20_search_slot_organic_impressions: number | null
           top_20_search_slot_promoted_impressions: number | null
@@ -98,6 +140,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          average_price?: number | null
           change_non_search_organic_impressions?: number | null
           change_non_search_promoted_listings_impressions?: number | null
           change_top_20_search_slot_impressions?: number | null
@@ -118,8 +161,16 @@ export type Database = {
           page_views_organic_outside_ebay?: number | null
           page_views_promoted_ebay?: number | null
           page_views_promoted_outside_ebay?: number | null
+          performance_score?: number | null
+          previous_period_impressions?: number | null
+          previous_period_revenue?: number | null
+          previous_period_sales?: number | null
           quantity_sold?: number | null
+          rank_by_conversion?: number | null
+          rank_by_impressions?: number | null
+          rank_by_sales?: number | null
           rest_of_search_slot_impressions?: number | null
+          revenue?: number | null
           sales_conversion_rate?: number | null
           top_20_search_slot_organic_impressions?: number | null
           top_20_search_slot_promoted_impressions?: number | null
@@ -131,6 +182,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          average_price?: number | null
           change_non_search_organic_impressions?: number | null
           change_non_search_promoted_listings_impressions?: number | null
           change_top_20_search_slot_impressions?: number | null
@@ -151,8 +203,16 @@ export type Database = {
           page_views_organic_outside_ebay?: number | null
           page_views_promoted_ebay?: number | null
           page_views_promoted_outside_ebay?: number | null
+          performance_score?: number | null
+          previous_period_impressions?: number | null
+          previous_period_revenue?: number | null
+          previous_period_sales?: number | null
           quantity_sold?: number | null
+          rank_by_conversion?: number | null
+          rank_by_impressions?: number | null
+          rank_by_sales?: number | null
           rest_of_search_slot_impressions?: number | null
+          revenue?: number | null
           sales_conversion_rate?: number | null
           top_20_search_slot_organic_impressions?: number | null
           top_20_search_slot_promoted_impressions?: number | null
