@@ -47,8 +47,14 @@ const parseDate = (dateStr: string): string => {
   }
 
   try {
-    const cleanedDate = dateStr.trim();
-    const date = new Date(cleanedDate);
+    // Assuming input is in DD/MM/YYYY format
+    const [day, month, year] = dateStr.trim().split(/[/-]/);
+    if (!day || !month || !year) {
+      return new Date().toISOString();
+    }
+    
+    // Create date in YYYY-MM-DD format for ISO string
+    const date = new Date(`${year}-${month}-${day}`);
     
     if (isNaN(date.getTime())) {
       return new Date().toISOString();

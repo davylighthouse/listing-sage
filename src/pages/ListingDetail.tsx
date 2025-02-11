@@ -1,8 +1,8 @@
-
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 const ListingDetail = () => {
   const { itemId } = useParams();
@@ -55,6 +55,10 @@ const ListingDetail = () => {
   const latestData = listingData[0];
   console.log("Latest data being displayed:", latestData);
   
+  const formatDate = (date: string) => {
+    return format(new Date(date), 'dd/MM/yyyy');
+  };
+
   const formatNumber = (value: number) => {
     return value.toLocaleString('en-US');
   };

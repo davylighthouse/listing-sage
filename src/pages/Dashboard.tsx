@@ -16,12 +16,17 @@ import {
   PieChart,
   Pie,
   Cell,
+  format,
 } from "recharts";
 
 const Dashboard = () => {
   const [data, setData] = useState<ListingMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+
+  const formatDate = (date: string) => {
+    return format(new Date(date), 'dd/MM/yyyy');
+  };
 
   useEffect(() => {
     const fetchData = async () => {

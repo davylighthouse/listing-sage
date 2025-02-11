@@ -29,7 +29,7 @@ interface RawDataTableProps {
 }
 
 const formatDate = (date: string) => {
-  return format(new Date(date), 'dd-MM-yyyy');
+  return format(new Date(date), 'dd/MM/yyyy');
 };
 
 const formatPercentage = (value: number) => {
@@ -107,7 +107,7 @@ const RawDataTable = ({
                       onCheckedChange={() => onSelectEntry(entry.id)}
                     />
                   </TableCell>
-                  <TableCell>{format(new Date(entry.created_at), 'dd-MM-yyyy')}</TableCell>
+                  <TableCell>{formatDate(entry.created_at)}</TableCell>
                   <TableCell>{entry.file_name}</TableCell>
                   <TableCell>{entry.ebay_item_id}</TableCell>
                   <TableCell>{entry.listing_title}</TableCell>
@@ -128,4 +128,3 @@ const RawDataTable = ({
 };
 
 export default RawDataTable;
-
