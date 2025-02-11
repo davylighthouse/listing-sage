@@ -8,6 +8,22 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { GripVertical } from "lucide-react";
 import { MetricName, MetricPriority } from "@/types/metrics";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const defaultPriorities: Array<{ metric: MetricName; priority: number }> = [
   { metric: 'quantity_sold', priority: 1 },
@@ -39,10 +55,52 @@ const formatMetricName = (metric: string) => {
     .join(' ');
 };
 
+interface SortableItemProps {
+  id: string;
+  metric: string;
+  index: number;
+}
+
+const SortableItem = ({ id, metric, index }: SortableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-4 p-3 bg-white border rounded-lg shadow-sm"
+    >
+      <div {...attributes} {...listeners}>
+        <GripVertical className="text-gray-400 cursor-grab active:cursor-grabbing" />
+      </div>
+      <span className="font-medium min-w-[24px]">{index + 1}.</span>
+      <span className="flex-1">{formatMetricName(metric)}</span>
+    </div>
+  );
+};
+
 export const MetricPriorities = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const { data: metricPriorities, isLoading } = useQuery({
     queryKey: ['metric-priorities'],
@@ -58,6 +116,41 @@ export const MetricPriorities = () => {
 
       return data as MetricPriority[];
     },
+  });
+
+  const updatePrioritiesMutation = useMutation({
+    mutationFn: async (updatedPriorities: MetricPriority[]) => {
+      if (!user?.id) return;
+
+      const { error } = await supabase
+        .from('metric_priorities')
+        .upsert(
+          updatedPriorities.map((p, index) => ({
+            id: p.id,
+            metric: p.metric,
+            priority: index + 1,
+            weight: p.weight,
+            user_id: p.user_id
+          }))
+        );
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['metric-priorities'] });
+      toast({
+        title: "Success",
+        description: "Metric priorities have been updated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update metric priorities.",
+        variant: "destructive",
+      });
+      console.error('Error updating priorities:', error);
+    }
   });
 
   const initializePrioritiesMutation = useMutation({
@@ -94,6 +187,18 @@ export const MetricPriorities = () => {
     }
   });
 
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id && metricPriorities) {
+      const oldIndex = metricPriorities.findIndex((p) => p.id === active.id);
+      const newIndex = metricPriorities.findIndex((p) => p.id === over.id);
+
+      const newPriorities = arrayMove(metricPriorities, oldIndex, newIndex);
+      updatePrioritiesMutation.mutate(newPriorities);
+    }
+  };
+
   const handleInitialize = () => {
     initializePrioritiesMutation.mutate();
   };
@@ -115,18 +220,27 @@ export const MetricPriorities = () => {
   return (
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-4">Metric Priorities</h2>
-      <div className="space-y-2">
-        {metricPriorities.map((priority, index) => (
-          <div
-            key={priority.id}
-            className="flex items-center gap-4 p-3 bg-white border rounded-lg shadow-sm"
-          >
-            <GripVertical className="text-gray-400" />
-            <span className="font-medium min-w-[24px]">{index + 1}.</span>
-            <span className="flex-1">{formatMetricName(priority.metric)}</span>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={metricPriorities.map(p => p.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-2">
+            {metricPriorities.map((priority, index) => (
+              <SortableItem
+                key={priority.id}
+                id={priority.id}
+                metric={priority.metric}
+                index={index}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
     </Card>
   );
 };
