@@ -353,7 +353,7 @@ const ProductsPage = () => {
                       className="text-sm text-gray-600 flex items-center justify-between"
                     >
                       <span>
-                        {listing.ebay_item_id} - {listing.listing_title}
+                        {listing.ebay_item_id} - {listing.ebay_listings.listing_title}
                       </span>
                       <Button
                         variant="ghost"
