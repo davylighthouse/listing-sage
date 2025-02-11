@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/AuthGuard";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
+import RawData from "./pages/RawData";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,16 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <ListingDetail />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/data"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <RawData />
                 </Layout>
               </AuthGuard>
             }
