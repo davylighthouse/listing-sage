@@ -1,3 +1,4 @@
+
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
@@ -34,34 +35,10 @@ const cleanNumericValue = (value: string): number => {
 };
 
 const cleanPercentage = (value: string): number => {
-  if (!value || value.trim() === '') {
-    return 0;
-  }
-
-  try {
-    let cleaned = value.trim();
-    
-    // Handle percentages in parentheses (negative percentages)
-    if (cleaned.startsWith('(') && cleaned.endsWith(')')) {
-      cleaned = '-' + cleaned.slice(1, -1);
-    }
-
-    // Remove % symbol and any non-numeric characters except decimal points and minus signs
-    cleaned = cleaned.replace(/[^0-9.-]/g, '');
-    
-    if (cleaned === '' || cleaned.toLowerCase() === 'n/a' || cleaned === '-') {
-      return 0;
-    }
-
-    const parsed = parseFloat(cleaned);
-    if (!isNaN(parsed) && isFinite(parsed)) {
-      // Convert percentage to decimal
-      return parsed / 100;
-    }
-    return 0;
-  } catch {
-    return 0;
-  }
+  if (!value || value.trim() === "") return 0;
+  const cleaned = value.replace(/[^0-9.-]/g, "");
+  const numericValue = cleaned ? parseFloat(cleaned) : null;
+  return numericValue !== null ? numericValue / 100 : 0;
 };
 
 const parseDate = (dateStr: string): string => {
