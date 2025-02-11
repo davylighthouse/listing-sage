@@ -96,42 +96,28 @@ export type Database = {
         }
         Relationships: []
       }
-      ebay_listings: {
+      ebay_listing_history: {
         Row: {
-          average_price: number | null
           change_non_search_organic_impressions: number | null
           change_non_search_promoted_listings_impressions: number | null
           change_top_20_search_slot_impressions: number | null
           change_top_20_search_slot_promoted_impressions: number | null
           click_through_rate: number | null
           created_at: string
-          data_end_date: string | null
-          data_start_date: string | null
+          data_end_date: string
+          data_start_date: string
           ebay_item_id: string
           file_name: string | null
           id: string
-          image_url: string | null
           import_batch_id: string | null
-          last_rank_update: string | null
-          listing_title: string
           non_search_organic_impressions: number | null
           non_search_promoted_listings_impressions: number | null
           page_views_organic_ebay: number | null
           page_views_organic_outside_ebay: number | null
           page_views_promoted_ebay: number | null
           page_views_promoted_outside_ebay: number | null
-          performance_score: number | null
-          previous_period_impressions: number | null
-          previous_period_revenue: number | null
-          previous_period_sales: number | null
-          previous_rank: number | null
           quantity_sold: number | null
-          rank_by_conversion: number | null
-          rank_by_impressions: number | null
-          rank_by_sales: number | null
-          rank_change: number | null
           rest_of_search_slot_impressions: number | null
-          revenue: number | null
           sales_conversion_rate: number | null
           top_20_search_slot_organic_impressions: number | null
           top_20_search_slot_promoted_impressions: number | null
@@ -139,96 +125,139 @@ export type Database = {
           total_organic_impressions_ebay: number | null
           total_page_views: number | null
           total_promoted_listings_impressions: number | null
+          user_id: string
+        }
+        Insert: {
+          change_non_search_organic_impressions?: number | null
+          change_non_search_promoted_listings_impressions?: number | null
+          change_top_20_search_slot_impressions?: number | null
+          change_top_20_search_slot_promoted_impressions?: number | null
+          click_through_rate?: number | null
+          created_at?: string
+          data_end_date: string
+          data_start_date: string
+          ebay_item_id: string
+          file_name?: string | null
+          id?: string
+          import_batch_id?: string | null
+          non_search_organic_impressions?: number | null
+          non_search_promoted_listings_impressions?: number | null
+          page_views_organic_ebay?: number | null
+          page_views_organic_outside_ebay?: number | null
+          page_views_promoted_ebay?: number | null
+          page_views_promoted_outside_ebay?: number | null
+          quantity_sold?: number | null
+          rest_of_search_slot_impressions?: number | null
+          sales_conversion_rate?: number | null
+          top_20_search_slot_organic_impressions?: number | null
+          top_20_search_slot_promoted_impressions?: number | null
+          total_impressions_ebay?: number | null
+          total_organic_impressions_ebay?: number | null
+          total_page_views?: number | null
+          total_promoted_listings_impressions?: number | null
+          user_id: string
+        }
+        Update: {
+          change_non_search_organic_impressions?: number | null
+          change_non_search_promoted_listings_impressions?: number | null
+          change_top_20_search_slot_impressions?: number | null
+          change_top_20_search_slot_promoted_impressions?: number | null
+          click_through_rate?: number | null
+          created_at?: string
+          data_end_date?: string
+          data_start_date?: string
+          ebay_item_id?: string
+          file_name?: string | null
+          id?: string
+          import_batch_id?: string | null
+          non_search_organic_impressions?: number | null
+          non_search_promoted_listings_impressions?: number | null
+          page_views_organic_ebay?: number | null
+          page_views_organic_outside_ebay?: number | null
+          page_views_promoted_ebay?: number | null
+          page_views_promoted_outside_ebay?: number | null
+          quantity_sold?: number | null
+          rest_of_search_slot_impressions?: number | null
+          sales_conversion_rate?: number | null
+          top_20_search_slot_organic_impressions?: number | null
+          top_20_search_slot_promoted_impressions?: number | null
+          total_impressions_ebay?: number | null
+          total_organic_impressions_ebay?: number | null
+          total_page_views?: number | null
+          total_promoted_listings_impressions?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_ebay_listing_history_ebay_item"
+            columns: ["ebay_item_id"]
+            isOneToOne: false
+            referencedRelation: "ebay_listings"
+            referencedColumns: ["ebay_item_id"]
+          },
+        ]
+      }
+      ebay_listings: {
+        Row: {
+          average_price: number | null
+          created_at: string
+          ebay_item_id: string
+          id: string
+          image_url: string | null
+          last_rank_update: string | null
+          listing_title: string
+          performance_score: number | null
+          previous_period_impressions: number | null
+          previous_period_revenue: number | null
+          previous_period_sales: number | null
+          previous_rank: number | null
+          rank_by_conversion: number | null
+          rank_by_impressions: number | null
+          rank_by_sales: number | null
+          rank_change: number | null
+          revenue: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           average_price?: number | null
-          change_non_search_organic_impressions?: number | null
-          change_non_search_promoted_listings_impressions?: number | null
-          change_top_20_search_slot_impressions?: number | null
-          change_top_20_search_slot_promoted_impressions?: number | null
-          click_through_rate?: number | null
           created_at?: string
-          data_end_date?: string | null
-          data_start_date?: string | null
           ebay_item_id: string
-          file_name?: string | null
           id?: string
           image_url?: string | null
-          import_batch_id?: string | null
           last_rank_update?: string | null
           listing_title: string
-          non_search_organic_impressions?: number | null
-          non_search_promoted_listings_impressions?: number | null
-          page_views_organic_ebay?: number | null
-          page_views_organic_outside_ebay?: number | null
-          page_views_promoted_ebay?: number | null
-          page_views_promoted_outside_ebay?: number | null
           performance_score?: number | null
           previous_period_impressions?: number | null
           previous_period_revenue?: number | null
           previous_period_sales?: number | null
           previous_rank?: number | null
-          quantity_sold?: number | null
           rank_by_conversion?: number | null
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
           rank_change?: number | null
-          rest_of_search_slot_impressions?: number | null
           revenue?: number | null
-          sales_conversion_rate?: number | null
-          top_20_search_slot_organic_impressions?: number | null
-          top_20_search_slot_promoted_impressions?: number | null
-          total_impressions_ebay?: number | null
-          total_organic_impressions_ebay?: number | null
-          total_page_views?: number | null
-          total_promoted_listings_impressions?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           average_price?: number | null
-          change_non_search_organic_impressions?: number | null
-          change_non_search_promoted_listings_impressions?: number | null
-          change_top_20_search_slot_impressions?: number | null
-          change_top_20_search_slot_promoted_impressions?: number | null
-          click_through_rate?: number | null
           created_at?: string
-          data_end_date?: string | null
-          data_start_date?: string | null
           ebay_item_id?: string
-          file_name?: string | null
           id?: string
           image_url?: string | null
-          import_batch_id?: string | null
           last_rank_update?: string | null
           listing_title?: string
-          non_search_organic_impressions?: number | null
-          non_search_promoted_listings_impressions?: number | null
-          page_views_organic_ebay?: number | null
-          page_views_organic_outside_ebay?: number | null
-          page_views_promoted_ebay?: number | null
-          page_views_promoted_outside_ebay?: number | null
           performance_score?: number | null
           previous_period_impressions?: number | null
           previous_period_revenue?: number | null
           previous_period_sales?: number | null
           previous_rank?: number | null
-          quantity_sold?: number | null
           rank_by_conversion?: number | null
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
           rank_change?: number | null
-          rest_of_search_slot_impressions?: number | null
           revenue?: number | null
-          sales_conversion_rate?: number | null
-          top_20_search_slot_organic_impressions?: number | null
-          top_20_search_slot_promoted_impressions?: number | null
-          total_impressions_ebay?: number | null
-          total_organic_impressions_ebay?: number | null
-          total_page_views?: number | null
-          total_promoted_listings_impressions?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -480,6 +509,12 @@ export type Database = {
         }[]
       }
       upsert_ebay_listings: {
+        Args: {
+          listings: Json[]
+        }
+        Returns: undefined
+      }
+      upsert_ebay_listings_with_history: {
         Args: {
           listings: Json[]
         }

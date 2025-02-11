@@ -75,26 +75,60 @@ const ProductsPage = () => {
     queryFn: async () => {
       if (!selectedProduct?.id) return [];
 
-      const { data, error } = await supabase
+      // First get the product listings and their basic info
+      const { data: listingsData, error: listingsError } = await supabase
         .from("product_listings")
         .select(`
           *,
           ebay_listing:ebay_listings!inner(
             listing_title,
-            total_impressions_ebay,
-            total_page_views,
-            quantity_sold,
-            click_through_rate
+            ebay_item_id
           )
         `)
         .eq("product_id", selectedProduct.id);
 
-      if (error) throw error;
+      if (listingsError) throw listingsError;
 
-      return data.map(item => ({
-        ...item,
-        ebay_listings: item.ebay_listing
-      })) as ProductListing[];
+      // Then get the aggregated metrics for each listing
+      const listingsWithMetrics = await Promise.all(
+        listingsData.map(async (listing) => {
+          const { data: metricsData, error: metricsError } = await supabase
+            .from("ebay_listing_history")
+            .select("*")
+            .eq("ebay_item_id", listing.ebay_item_id)
+            .order("data_end_date", { ascending: false });
+
+          if (metricsError) throw metricsError;
+
+          // Calculate totals and averages
+          const metrics = metricsData.reduce((acc, curr) => ({
+            total_impressions_ebay: acc.total_impressions_ebay + (curr.total_impressions_ebay || 0),
+            total_page_views: acc.total_page_views + (curr.total_page_views || 0),
+            quantity_sold: acc.quantity_sold + (curr.quantity_sold || 0),
+            click_through_rate: acc.click_through_rate + (curr.click_through_rate || 0),
+            count: acc.count + 1
+          }), {
+            total_impressions_ebay: 0,
+            total_page_views: 0,
+            quantity_sold: 0,
+            click_through_rate: 0,
+            count: 0
+          });
+
+          return {
+            ...listing,
+            ebay_listings: {
+              ...listing.ebay_listing,
+              total_impressions_ebay: metrics.total_impressions_ebay,
+              total_page_views: metrics.total_page_views,
+              quantity_sold: metrics.quantity_sold,
+              click_through_rate: metrics.count > 0 ? metrics.click_through_rate / metrics.count : 0
+            }
+          };
+        })
+      );
+
+      return listingsWithMetrics as ProductListing[];
     },
     enabled: !!selectedProduct?.id,
   });
