@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Upload } from "lucide-react";
+import { Upload, Eye, Plus } from "lucide-react";
 import type { ListingSummary } from "./Listings";
 
 interface Product {
@@ -24,10 +25,17 @@ interface Product {
   image_url?: string;
 }
 
+interface ProductListing {
+  ebay_item_id: string;
+  listing_title: string;
+}
+
 const ProductsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [listingDialogOpen, setListingDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -60,6 +68,58 @@ const ProductsPage = () => {
       return data as Product[];
     },
     enabled: !!user?.id,
+  });
+
+  const { data: availableListings } = useQuery({
+    queryKey: ["available-listings", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("ebay_listings")
+        .select("ebay_item_id, listing_title")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Group by ebay_item_id to get unique listings
+      const uniqueListings = data.reduce((acc: Record<string, ProductListing>, curr) => {
+        if (!acc[curr.ebay_item_id]) {
+          acc[curr.ebay_item_id] = {
+            ebay_item_id: curr.ebay_item_id,
+            listing_title: curr.listing_title,
+          };
+        }
+        return acc;
+      }, {});
+
+      return Object.values(uniqueListings);
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: productListings, refetch: refetchProductListings } = useQuery({
+    queryKey: ["product-listings", selectedProduct?.id],
+    queryFn: async () => {
+      if (!selectedProduct?.id) return [];
+
+      const { data, error } = await supabase
+        .from("product_listings")
+        .select(`
+          ebay_item_id,
+          ebay_listings!inner(listing_title)
+        `)
+        .eq("product_id", selectedProduct.id);
+
+      if (error) throw error;
+
+      return data.map(item => ({
+        ebay_item_id: item.ebay_item_id,
+        listing_title: item.ebay_listings.listing_title
+      }));
+    },
+    enabled: !!selectedProduct?.id,
   });
 
   const handleImageUpload = async (file: File) => {
@@ -119,6 +179,34 @@ const ProductsPage = () => {
       toast({
         title: "Error",
         description: "Failed to create product",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddListing = async (ebayItemId: string) => {
+    if (!selectedProduct?.id || !user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from("product_listings")
+        .insert({
+          product_id: selectedProduct.id,
+          ebay_item_id: ebayItemId,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Listing added to product successfully",
+      });
+      refetchProductListings();
+    } catch (error) {
+      console.error("Error adding listing to product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add listing to product",
         variant: "destructive",
       });
     }
@@ -211,37 +299,112 @@ const ProductsPage = () => {
           </DialogContent>
         </Dialog>
       </div>
+
       <div className="grid gap-4">
         {products?.map((product) => (
           <div
             key={product.id}
-            className="bg-white p-4 rounded-lg border shadow-sm flex items-center gap-4"
+            className="bg-white p-4 rounded-lg border shadow-sm"
           >
-            <div className="w-24 h-24 rounded-lg border bg-gray-50 flex items-center justify-center overflow-hidden">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Upload className="w-6 h-6 text-gray-400" />
-              )}
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 rounded-lg border bg-gray-50 flex items-center justify-center overflow-hidden">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Upload className="w-6 h-6 text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="font-medium">{product.name}</div>
+                {product.sku && (
+                  <div className="text-sm text-gray-500">SKU: {product.sku}</div>
+                )}
+                {product.category && (
+                  <div className="text-xs text-gray-400 mt-1">
+                    Category: {product.category}
+                  </div>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setListingDialogOpen(true);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Listing
+              </Button>
             </div>
-            <div className="flex-1">
-              <div className="font-medium">{product.name}</div>
-              {product.sku && (
-                <div className="text-sm text-gray-500">SKU: {product.sku}</div>
-              )}
-              {product.category && (
-                <div className="text-xs text-gray-400 mt-1">
-                  Category: {product.category}
+
+            {/* Display associated listings */}
+            {selectedProduct?.id === product.id && productListings && productListings.length > 0 && (
+              <div className="mt-4 border-t pt-4">
+                <h3 className="text-sm font-medium mb-2">Associated Listings:</h3>
+                <div className="space-y-2">
+                  {productListings.map((listing) => (
+                    <div
+                      key={listing.ebay_item_id}
+                      className="text-sm text-gray-600 flex items-center justify-between"
+                    >
+                      <span>
+                        {listing.ebay_item_id} - {listing.listing_title}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                      >
+                        <a href={`/listings/${listing.ebay_item_id}`} target="_blank" rel="noopener noreferrer">
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Listing Selection Dialog */}
+      <Dialog open={listingDialogOpen} onOpenChange={setListingDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add Listing to {selectedProduct?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[400px] overflow-y-auto">
+            {availableListings?.map((listing) => (
+              <div
+                key={listing.ebay_item_id}
+                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
+              >
+                <div>
+                  <div className="font-medium">{listing.ebay_item_id}</div>
+                  <div className="text-sm text-gray-500">{listing.listing_title}</div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    handleAddListing(listing.ebay_item_id);
+                    setListingDialogOpen(false);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
