@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,22 +19,17 @@ const RawDataPage = () => {
         console.error("User not authenticated");
         throw new Error("User not authenticated");
       }
-      console.log("Fetching files for user:", user.id);
 
       const { data, error } = await supabase
-        .from('ebay_listings')
+        .from('ebay_listing_history')
         .select('import_batch_id, file_name, created_at')
         .eq('user_id', user.id)
-        .filter('import_batch_id', 'not.is', null)
-        .filter('file_name', 'not.is', null)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error fetching files:", error);
         throw error;
       }
-
-      console.log("Raw files data:", data);
 
       // Group by import batch and count records
       const filesSummary = data.reduce((acc: Record<string, any>, curr) => {
@@ -52,9 +46,7 @@ const RawDataPage = () => {
         return acc;
       }, {});
 
-      const result = Object.values(filesSummary);
-      console.log("Processed files summary:", result);
-      return result;
+      return Object.values(filesSummary);
     },
     enabled: !!user?.id,
   });
@@ -67,10 +59,9 @@ const RawDataPage = () => {
         console.error("User not authenticated");
         throw new Error("User not authenticated");
       }
-      console.log("Fetching raw data for user:", user.id);
 
       const { data, error } = await supabase
-        .from('ebay_listings')
+        .from('ebay_listing_history')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -80,10 +71,6 @@ const RawDataPage = () => {
         throw error;
       }
 
-      console.log("Raw data received:", data);
-      if (data) {
-        console.log("Sample total_impressions value:", data[0]?.total_impressions_ebay);
-      }
       return data;
     },
     enabled: !!user?.id,
@@ -106,7 +93,7 @@ const RawDataPage = () => {
     try {
       console.log("Deleting file with batch ID:", batchId);
       const { error } = await supabase
-        .from('ebay_listings')
+        .from('ebay_listing_history')
         .delete()
         .eq('user_id', user.id)
         .eq('import_batch_id', batchId);
@@ -158,7 +145,7 @@ const RawDataPage = () => {
     try {
       console.log("Deleting selected entries:", selectedEntries);
       const { error } = await supabase
-        .from('ebay_listings')
+        .from('ebay_listing_history')
         .delete()
         .eq('user_id', user.id)
         .in('id', selectedEntries);

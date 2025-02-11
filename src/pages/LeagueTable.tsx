@@ -47,14 +47,44 @@ const LeagueTable = () => {
   const { data: listings, isLoading } = useQuery({
     queryKey: ["leagueTable", sortBy, sortOrder, timeframe, rankCriteria],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get base listings with ranking info
+      const { data: baseListings, error: baseError } = await supabase
         .from("ebay_listings")
         .select("*")
-        .order(rankCriteria, { ascending: false })
-        .limit(50);
+        .order(rankCriteria, { ascending: false });
 
-      if (error) throw error;
-      return data as LeagueTableEntry[];
+      if (baseError) throw baseError;
+
+      // Get latest metrics for each listing
+      const listingsWithMetrics = await Promise.all(
+        (baseListings || []).map(async (listing) => {
+          const { data: metrics, error: metricsError } = await supabase
+            .from("ebay_listing_history")
+            .select("*")
+            .eq("ebay_item_id", listing.ebay_item_id)
+            .order("data_end_date", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (metricsError) {
+            console.error("Error fetching metrics:", metricsError);
+            return {
+              ...listing,
+              quantity_sold: 0,
+              total_impressions_ebay: 0,
+              click_through_rate: 0,
+              total_page_views: 0,
+              sales_conversion_rate: 0,
+              page_views_promoted_ebay: 0,
+              page_views_promoted_outside_ebay: 0,
+            };
+          }
+
+          return { ...listing, ...metrics };
+        })
+      );
+
+      return listingsWithMetrics as LeagueTableEntry[];
     },
   });
 

@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,23 +12,41 @@ const ListingDetail = () => {
   const { data: listingData, isLoading } = useQuery({
     queryKey: ["listing-detail", itemId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the base listing info
+      const { data: listing, error: listingError } = await supabase
         .from("ebay_listings")
         .select("*")
         .eq("ebay_item_id", itemId)
-        .order("created_at", { ascending: false });
+        .single();
 
-      if (error) {
+      if (listingError) {
         toast({
           title: "Error",
           description: "Failed to load listing details",
           variant: "destructive",
         });
-        throw error;
+        throw listingError;
       }
 
-      console.log("Raw listing data:", data);
-      return data;
+      // Then get the latest metrics
+      const { data: metrics, error: metricsError } = await supabase
+        .from("ebay_listing_history")
+        .select("*")
+        .eq("ebay_item_id", itemId)
+        .order("data_end_date", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (metricsError) {
+        toast({
+          title: "Error",
+          description: "Failed to load listing metrics",
+          variant: "destructive",
+        });
+        throw metricsError;
+      }
+
+      return { ...listing, ...metrics };
     },
   });
 
@@ -41,7 +60,7 @@ const ListingDetail = () => {
     );
   }
 
-  if (!listingData?.length) {
+  if (!listingData) {
     return (
       <div className="p-8">
         <div className="text-center">
@@ -52,9 +71,6 @@ const ListingDetail = () => {
     );
   }
 
-  const latestData = listingData[0];
-  console.log("Latest data being displayed:", latestData);
-  
   const formatDate = (date: string) => {
     return format(new Date(date), 'dd/MM/yyyy');
   };
@@ -69,8 +85,8 @@ const ListingDetail = () => {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-2">{latestData.listing_title}</h1>
-      <p className="text-gray-500 mb-6">Item ID: {latestData.ebay_item_id}</p>
+      <h1 className="text-2xl font-bold mb-2">{listingData.listing_title}</h1>
+      <p className="text-gray-500 mb-6">Item ID: {listingData.ebay_item_id}</p>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white p-4 rounded-lg border">
@@ -78,15 +94,15 @@ const ListingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Total Impressions</span>
-              <span>{formatNumber(latestData.total_impressions_ebay)}</span>
+              <span>{formatNumber(listingData.total_impressions_ebay)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Click Through Rate</span>
-              <span>{formatPercentage(latestData.click_through_rate)}</span>
+              <span>{formatPercentage(listingData.click_through_rate)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Quantity Sold</span>
-              <span>{formatNumber(latestData.quantity_sold)}</span>
+              <span>{formatNumber(listingData.quantity_sold)}</span>
             </div>
           </div>
         </div>
@@ -96,11 +112,11 @@ const ListingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Top 20 Search Promoted</span>
-              <span>{formatNumber(latestData.top_20_search_slot_promoted_impressions)}</span>
+              <span>{formatNumber(listingData.top_20_search_slot_promoted_impressions)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Top 20 Search Organic</span>
-              <span>{formatNumber(latestData.top_20_search_slot_organic_impressions)}</span>
+              <span>{formatNumber(listingData.top_20_search_slot_organic_impressions)}</span>
             </div>
           </div>
         </div>
@@ -110,15 +126,15 @@ const ListingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Total Views</span>
-              <span>{formatNumber(latestData.total_page_views)}</span>
+              <span>{formatNumber(listingData.total_page_views)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Organic eBay Views</span>
-              <span>{formatNumber(latestData.page_views_organic_ebay)}</span>
+              <span>{formatNumber(listingData.page_views_organic_ebay)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Promoted eBay Views</span>
-              <span>{formatNumber(latestData.page_views_promoted_ebay)}</span>
+              <span>{formatNumber(listingData.page_views_promoted_ebay)}</span>
             </div>
           </div>
         </div>
