@@ -1,8 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { ListingMetrics } from "@/types/listing";
 import { useAuth } from "@/hooks/useAuth";
+import { format } from "date-fns";
 import {
   BarChart,
   Bar,
@@ -16,7 +18,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  format,
 } from "recharts";
 
 const Dashboard = () => {
