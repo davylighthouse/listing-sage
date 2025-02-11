@@ -125,17 +125,7 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_promoted_ebay: cleanNumericValue(cleanRow[20]),
         page_views_promoted_outside_ebay: cleanNumericValue(cleanRow[21]),
         page_views_organic_ebay: cleanNumericValue(cleanRow[22]),
-        page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23]),
-        // Add new fields with default values
-        revenue: 0,
-        average_price: 0,
-        previous_period_sales: 0,
-        previous_period_revenue: 0,
-        previous_period_impressions: 0,
-        rank_by_sales: 0,
-        rank_by_impressions: 0,
-        rank_by_conversion: 0,
-        performance_score: 0
+        page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
       console.log('Created metric with impressions:', metric.total_impressions_ebay);
