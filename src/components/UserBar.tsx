@@ -5,6 +5,12 @@ import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const UserBar = () => {
   const navigate = useNavigate();
@@ -32,14 +38,22 @@ const UserBar = () => {
       {user?.email && (
         <span className="text-sm text-gray-600 truncate">{user.email}</span>
       )}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate("/settings")}
-        className="hover:bg-gray-100"
-      >
-        <Settings className="h-5 w-5" />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hover:bg-gray-100"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => navigate("/settings")}>
+            Change Password
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <Button
         variant="ghost"
         size="icon"
