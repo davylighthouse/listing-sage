@@ -64,7 +64,7 @@ export const useCSVUpload = () => {
       const importBatchId = crypto.randomUUID();
 
       // Process records in smaller batches to avoid timeouts
-      const batchSize = 50;
+      const batchSize = 10; // Reduced from 50 to 10
       for (let i = 0; i < metrics.length; i += batchSize) {
         const batch = metrics.slice(i, i + batchSize).map(metric => ({
           user_id: user.id,
@@ -75,6 +75,11 @@ export const useCSVUpload = () => {
           data_end_date: new Date(metric.data_end_date).toISOString(),
         }));
 
+        // Add delay between batches to prevent overloading
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         const { error } = await supabase.rpc('upsert_ebay_listings_with_history', {
           listings: batch
         });
@@ -83,6 +88,8 @@ export const useCSVUpload = () => {
           console.error('Batch insert error:', error);
           throw new Error(`Failed to save batch ${i / batchSize + 1}`);
         }
+
+        console.log(`Successfully processed batch ${i / batchSize + 1} of ${Math.ceil(metrics.length / batchSize)}`);
       }
 
       toast({
