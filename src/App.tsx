@@ -16,6 +16,7 @@ import RawData from "./pages/RawData";
 import Mapping from "./pages/Mapping";
 import Products from "./pages/Products";
 import ProductDashboard from "./components/products/ProductDashboard";
+import MetricPriorities from "./pages/MetricPriorities";
 
 const queryClient = new QueryClient();
 
@@ -131,6 +132,16 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <Mapping />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/metrics"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <MetricPriorities />
                 </Layout>
               </AuthGuard>
             }
