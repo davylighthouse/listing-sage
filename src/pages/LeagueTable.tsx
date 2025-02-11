@@ -42,14 +42,15 @@ const LeagueTable = () => {
   const [sortBy, setSortBy] = useState("rank_by_sales");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [timeframe, setTimeframe] = useState("week");
+  const [rankCriteria, setRankCriteria] = useState("quantity_sold");
 
   const { data: listings, isLoading } = useQuery({
-    queryKey: ["leagueTable", sortBy, sortOrder, timeframe],
+    queryKey: ["leagueTable", sortBy, sortOrder, timeframe, rankCriteria],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ebay_listings")
         .select("*")
-        .order(sortBy, { ascending: sortOrder === "asc" })
+        .order(rankCriteria, { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -100,11 +101,25 @@ const LeagueTable = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-64"
           />
+          <Select value={rankCriteria} onValueChange={setRankCriteria}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Rank by" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="quantity_sold">Quantity Sold</SelectItem>
+              <SelectItem value="total_impressions_ebay">Impressions</SelectItem>
+              <SelectItem value="click_through_rate">CTR</SelectItem>
+              <SelectItem value="total_page_views">Page Views</SelectItem>
+              <SelectItem value="sales_conversion_rate">Conversion Rate</SelectItem>
+              <SelectItem value="page_views_promoted_ebay">Promoted Views (eBay)</SelectItem>
+              <SelectItem value="page_views_promoted_outside_ebay">Promoted Views (External)</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={timeframe} onValueChange={setTimeframe}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               <SelectItem value="week">Weekly</SelectItem>
               <SelectItem value="month">Monthly</SelectItem>
               <SelectItem value="quarter">Quarterly</SelectItem>
@@ -138,9 +153,9 @@ const LeagueTable = () => {
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : filteredListings?.map((listing) => (
+            ) : filteredListings?.map((listing, index) => (
               <TableRow key={listing.id}>
-                <TableCell>{getRankDisplay(listing.rank_by_sales)}</TableCell>
+                <TableCell>{getRankDisplay(index + 1)}</TableCell>
                 <TableCell className="flex items-center gap-1">
                   {getRankChangeIcon(listing.rank_change)}
                   {listing.rank_change ? Math.abs(listing.rank_change) : "-"}
@@ -181,3 +196,4 @@ const LeagueTable = () => {
 };
 
 export default LeagueTable;
+
