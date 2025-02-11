@@ -218,6 +218,7 @@ export type Database = {
           previous_period_revenue: number | null
           previous_period_sales: number | null
           previous_rank: number | null
+          quantity_sold: number | null
           rank_by_conversion: number | null
           rank_by_impressions: number | null
           rank_by_sales: number | null
@@ -239,6 +240,7 @@ export type Database = {
           previous_period_revenue?: number | null
           previous_period_sales?: number | null
           previous_rank?: number | null
+          quantity_sold?: number | null
           rank_by_conversion?: number | null
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
@@ -260,6 +262,7 @@ export type Database = {
           previous_period_revenue?: number | null
           previous_period_sales?: number | null
           previous_rank?: number | null
+          quantity_sold?: number | null
           rank_by_conversion?: number | null
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
