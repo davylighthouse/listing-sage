@@ -1,32 +1,14 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ListingMetrics } from "@/types/listing";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 import { KPICards } from "@/components/dashboard/KPICards";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
+import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
+import { ImpressionsBarChart } from "@/components/dashboard/ImpressionsBarChart";
+import { ImpressionsPieChart } from "@/components/dashboard/ImpressionsPieChart";
+import { CTRLineChart } from "@/components/dashboard/CTRLineChart";
 
 const Dashboard = () => {
   const [data, setData] = useState<ListingMetrics[]>([]);
@@ -111,8 +93,6 @@ const Dashboard = () => {
     },
   ];
 
-  const COLORS = ["#3b82f6", "#10b981"];
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -125,49 +105,14 @@ const Dashboard = () => {
     <div className="p-6 animate-fade-in">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Performance Dashboard</h1>
-        
-        <div className="flex gap-6 items-end">
-          <div className="space-y-2">
-            <Input
-              placeholder="Search by title or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Ranking Filter</label>
-            <Select value={rankCriteria} onValueChange={setRankCriteria}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Rank by" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="quantity_sold">Quantity Sold</SelectItem>
-                <SelectItem value="total_impressions_ebay">Impressions</SelectItem>
-                <SelectItem value="click_through_rate">CTR</SelectItem>
-                <SelectItem value="total_page_views">Page Views</SelectItem>
-                <SelectItem value="sales_conversion_rate">Conversion Rate</SelectItem>
-                <SelectItem value="page_views_promoted_ebay">Promoted Views (eBay)</SelectItem>
-                <SelectItem value="page_views_promoted_outside_ebay">Promoted Views (External)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Time Filter</label>
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Timeframe" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="week">Weekly</SelectItem>
-                <SelectItem value="month">Monthly</SelectItem>
-                <SelectItem value="quarter">Quarterly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <DashboardFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          rankCriteria={rankCriteria}
+          setRankCriteria={setRankCriteria}
+          timeframe={timeframe}
+          setTimeframe={setTimeframe}
+        />
       </div>
 
       <KPICards
@@ -179,91 +124,9 @@ const Dashboard = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <h3 className="text-lg font-medium mb-4">Impressions by Listing</h3>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={data}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 60,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="listing_title"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="total_impressions_ebay" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <h3 className="text-lg font-medium mb-4">Organic vs Promoted Impressions</h3>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={impressionsSplit}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={150}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {impressionsSplit.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        <Card className="p-6 col-span-2">
-          <h3 className="text-lg font-medium mb-4">Click-Through Rate by Listing</h3>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={data}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 60,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="listing_title"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="click_through_rate"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        <ImpressionsBarChart data={data} />
+        <ImpressionsPieChart data={impressionsSplit} />
+        <CTRLineChart data={data} />
       </div>
 
       {data.length === 0 && (
@@ -278,3 +141,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
