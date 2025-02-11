@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -12,20 +12,22 @@ interface ListingSummary {
   ebay_item_id: string;
   listing_title: string;
   total_records: number;
+  image_url?: string;
 }
 
 const ListingsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
-  const { data: listings, isLoading } = useQuery({
+  const { data: listings, isLoading, refetch } = useQuery({
     queryKey: ["listings-summary", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
 
       const { data, error } = await supabase
         .from("ebay_listings")
-        .select("ebay_item_id, listing_title")
+        .select("ebay_item_id, listing_title, image_url")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -47,6 +49,7 @@ const ListingsPage = () => {
           acc[curr.ebay_item_id] = {
             ebay_item_id: curr.ebay_item_id,
             listing_title: curr.listing_title,
+            image_url: curr.image_url,
             total_records: 1,
           };
         } else {
@@ -59,6 +62,51 @@ const ListingsPage = () => {
     },
     enabled: !!user?.id,
   });
+
+  const handleImageUpload = async (file: File, itemId: string) => {
+    try {
+      setUploadingId(itemId);
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${itemId}/${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product_images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product_images')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('ebay_listings')
+        .update({ image_url: publicUrl })
+        .eq('ebay_item_id', itemId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -96,8 +144,41 @@ const ListingsPage = () => {
         {listings.map((listing) => (
           <div
             key={listing.ebay_item_id}
-            className="bg-white p-4 rounded-lg border shadow-sm flex items-center justify-between"
+            className="bg-white p-4 rounded-lg border shadow-sm flex items-center gap-4"
           >
+            <div 
+              className="relative w-24 h-24 rounded-lg border bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer group"
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    handleImageUpload(file, listing.ebay_item_id);
+                  }
+                };
+                input.click();
+              }}
+            >
+              {listing.image_url ? (
+                <img 
+                  src={listing.image_url} 
+                  alt={listing.listing_title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Upload className="w-6 h-6 text-gray-400" />
+              )}
+              {uploadingId === listing.ebay_item_id && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <Upload className="w-6 h-6 text-white" />
+              </div>
+            </div>
             <div className="flex-1">
               <div className="font-medium">{listing.ebay_item_id}</div>
               <div className="text-sm text-gray-500">{listing.listing_title}</div>

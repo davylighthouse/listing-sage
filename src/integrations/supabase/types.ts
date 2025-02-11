@@ -76,6 +76,7 @@ export type Database = {
           ebay_item_id: string
           file_name: string | null
           id: string
+          image_url: string | null
           import_batch_id: string | null
           listing_title: string
           non_search_organic_impressions: number | null
@@ -108,6 +109,7 @@ export type Database = {
           ebay_item_id: string
           file_name?: string | null
           id?: string
+          image_url?: string | null
           import_batch_id?: string | null
           listing_title: string
           non_search_organic_impressions?: number | null
@@ -140,6 +142,7 @@ export type Database = {
           ebay_item_id?: string
           file_name?: string | null
           id?: string
+          image_url?: string | null
           import_batch_id?: string | null
           listing_title?: string
           non_search_organic_impressions?: number | null
