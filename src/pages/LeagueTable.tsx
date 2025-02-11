@@ -13,7 +13,6 @@ import {
 import { ArrowUp, ArrowDown, Minus, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -72,6 +71,19 @@ const LeagueTable = () => {
     return <ArrowDown className="w-4 h-4 text-red-500" />;
   };
 
+  const getRankDisplay = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return "🏆";
+      case 2:
+        return "🥈";
+      case 3:
+        return "🥉";
+      default:
+        return rank;
+    }
+  };
+
   const filteredListings = listings?.filter((listing) =>
     listing.listing_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     listing.ebay_item_id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -128,7 +140,7 @@ const LeagueTable = () => {
               </TableRow>
             ) : filteredListings?.map((listing) => (
               <TableRow key={listing.id}>
-                <TableCell>{listing.rank_by_sales}</TableCell>
+                <TableCell>{getRankDisplay(listing.rank_by_sales)}</TableCell>
                 <TableCell className="flex items-center gap-1">
                   {getRankChangeIcon(listing.rank_change)}
                   {listing.rank_change ? Math.abs(listing.rank_change) : "-"}
