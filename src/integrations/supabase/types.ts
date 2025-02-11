@@ -189,6 +189,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_ebay_listing"
+            columns: ["ebay_item_id"]
+            isOneToOne: false
+            referencedRelation: "ebay_listings"
+            referencedColumns: ["ebay_item_id"]
+          },
+          {
             foreignKeyName: "fk_ebay_listing_history_ebay_item"
             columns: ["ebay_item_id"]
             isOneToOne: false

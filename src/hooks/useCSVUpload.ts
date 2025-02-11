@@ -75,7 +75,7 @@ export const useCSVUpload = () => {
           data_end_date: new Date(metric.data_end_date).toISOString(),
         }));
 
-        const { error } = await supabase.rpc('upsert_ebay_listings', {
+        const { error } = await supabase.rpc('upsert_ebay_listings_with_history', {
           listings: batch
         });
 
@@ -179,4 +179,3 @@ export const useCSVUpload = () => {
     handleFileInput
   };
 };
-
