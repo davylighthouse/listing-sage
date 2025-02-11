@@ -78,9 +78,18 @@ export const DataMappingForm = () => {
     }
 
     try {
-      const { error } = await supabase
+      // First, delete existing mappings for this user
+      const { error: deleteError } = await supabase
         .from("column_mappings")
-        .upsert(
+        .delete()
+        .eq('user_id', user.id);
+
+      if (deleteError) throw deleteError;
+
+      // Then insert new mappings
+      const { error: insertError } = await supabase
+        .from("column_mappings")
+        .insert(
           Object.entries(mappings).map(([targetField, sourceColumn]) => ({
             user_id: user.id,
             target_field: targetField,
@@ -89,7 +98,7 @@ export const DataMappingForm = () => {
           }))
         );
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast({
         title: "Success",
