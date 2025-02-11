@@ -11,7 +11,7 @@ const cleanNumericValue = (value: string): number => {
   }
 
   // Clean up the string
-  const cleanedValue = value.toString().trim();
+  let cleanedValue = value.toString().trim();
   
   // Handle empty string or special cases
   if (cleanedValue === '' || cleanedValue.toLowerCase() === 'n/a' || cleanedValue === '-') {
@@ -20,6 +20,11 @@ const cleanNumericValue = (value: string): number => {
   }
 
   try {
+    // Handle numbers in parentheses (negative numbers)
+    if (cleanedValue.startsWith('(') && cleanedValue.endsWith(')')) {
+      cleanedValue = '-' + cleanedValue.slice(1, -1);
+    }
+
     // Remove any currency symbols, commas and spaces
     const withoutCurrency = cleanedValue.replace(/[$£€,\s]/g, '');
     console.log('Cleaned value for parsing:', withoutCurrency);
@@ -44,7 +49,16 @@ const cleanPercentage = (value: string): number => {
     return 0;
   }
 
-  const cleaned = value.trim().replace(/[%\s]/g, '');
+  let cleaned = value.trim();
+  
+  // Handle percentages in parentheses (negative percentages)
+  if (cleaned.startsWith('(') && cleaned.endsWith(')')) {
+    cleaned = '-' + cleaned.slice(1, -1);
+  }
+
+  // Remove % symbol and spaces
+  cleaned = cleaned.replace(/[%\s]/g, '');
+  
   if (cleaned.toLowerCase() === 'n/a' || cleaned === '-') {
     return 0;
   }
@@ -52,6 +66,7 @@ const cleanPercentage = (value: string): number => {
   try {
     const parsed = parseFloat(cleaned);
     if (!isNaN(parsed) && isFinite(parsed)) {
+      // Convert percentage to decimal (e.g., 0.7% becomes 0.007)
       return parsed / 100;
     }
     return 0;
