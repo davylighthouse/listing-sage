@@ -34,7 +34,7 @@ export const useCSVUpload = () => {
       const text = await file.text();
       const rows = text.split('\n')
         .map(row => row.split(',').map(cell => cell.trim()))
-        .filter(row => row.length > 1);
+        .filter(row => row.length > 1 && row.some(cell => cell.trim() !== '')); // Skip empty rows
       
       const headers = rows[0];
       validateCSVFormat(headers);
@@ -42,6 +42,8 @@ export const useCSVUpload = () => {
       if (rows.length <= 1) {
         throw new Error('No valid data rows found in the CSV file');
       }
+      
+      console.log('Processing CSV with rows:', rows.length);
       
       // Store headers in raw_data table
       const { error: headerError } = await supabase
@@ -59,6 +61,7 @@ export const useCSVUpload = () => {
       
       setPreviewData([headers, ...rows.slice(1, 6)]); 
       const metrics = processCSVData(rows);
+      console.log('Processed metrics:', metrics.length);
       setProcessedData(metrics);
 
       const importBatchId = crypto.randomUUID();
@@ -69,6 +72,8 @@ export const useCSVUpload = () => {
 
       for (let i = 0; i < metrics.length; i += batchSize) {
         const batch = metrics.slice(i, i + batchSize);
+        console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(metrics.length / batchSize)}`);
+        
         const { successCount, errorCount, errors } = await uploadBatch(
           batch,
           user.id,
@@ -80,11 +85,19 @@ export const useCSVUpload = () => {
         totalErrorCount += errorCount;
         allErrors.push(...errors);
 
+        console.log(`Batch results - Success: ${successCount}, Errors: ${errorCount}`);
+        console.log(`Total progress - Success: ${totalSuccessCount}, Errors: ${totalErrorCount}`);
+
+        if (errors.length > 0) {
+          console.log('Batch errors:', errors);
+        }
+
+        // Add a small delay between batches
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log(`Processed ${totalSuccessCount + totalErrorCount} of ${metrics.length} records`);
       }
 
-      if (totalSuccessCount === 0) {
+      // Only throw error if no records were processed successfully
+      if (totalSuccessCount === 0 && totalErrorCount > 0) {
         throw new Error('Failed to process any records successfully');
       }
 
@@ -100,7 +113,9 @@ export const useCSVUpload = () => {
         console.error('Processing errors:', allErrors);
       }
 
-      navigate('/listings');
+      if (totalSuccessCount > 0) {
+        navigate('/listings');
+      }
     } catch (error) {
       console.error('CSV Processing error:', error);
       toast({

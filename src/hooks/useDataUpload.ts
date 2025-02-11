@@ -28,6 +28,8 @@ export const useDataUpload = () => {
       data_end_date: new Date(metric.data_end_date).toISOString(),
     }));
 
+    console.log('Uploading batch:', formattedBatch);
+
     const { data: results, error } = await supabase.rpc('upsert_ebay_listings_with_history', {
       listings: formattedBatch
     });
@@ -41,12 +43,27 @@ export const useDataUpload = () => {
       };
     }
 
-    const processedResults = results.reduce((acc, result) => ({
-      successCount: acc.successCount + (result.success ? 1 : 0),
-      errorCount: acc.errorCount + (result.success ? 0 : 1),
-      errors: result.success ? acc.errors : [...acc.errors, `Error with item ${result.ebay_item_id}: ${result.message}`]
-    }), { successCount: 0, errorCount: 0, errors: [] as string[] });
+    if (!results || !Array.isArray(results)) {
+      console.error('Unexpected results format:', results);
+      return {
+        successCount: 0,
+        errorCount: batch.length,
+        errors: ['Unexpected response format from server']
+      };
+    }
 
+    console.log('Batch results:', results);
+
+    const processedResults = results.reduce((acc, result) => {
+      const isSuccess = result.success === true; // Explicit check for boolean true
+      return {
+        successCount: acc.successCount + (isSuccess ? 1 : 0),
+        errorCount: acc.errorCount + (isSuccess ? 0 : 1),
+        errors: isSuccess ? acc.errors : [...acc.errors, `Error with item ${result.ebay_item_id}: ${result.message}`]
+      };
+    }, { successCount: 0, errorCount: 0, errors: [] as string[] });
+
+    console.log('Processed results:', processedResults);
     return processedResults;
   }, []);
 
