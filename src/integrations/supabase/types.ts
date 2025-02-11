@@ -528,7 +528,11 @@ export type Database = {
         Args: {
           listings: Json[]
         }
-        Returns: undefined
+        Returns: {
+          success: boolean
+          message: string
+          ebay_item_id: string
+        }[]
       }
     }
     Enums: {

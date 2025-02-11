@@ -66,6 +66,8 @@ export const useCSVUpload = () => {
       // Process records in very small batches with delays
       const batchSize = 5; // Even smaller batch size
       let successCount = 0;
+      let errorCount = 0;
+      let errors: string[] = [];
 
       for (let i = 0; i < metrics.length; i += batchSize) {
         try {
@@ -78,37 +80,59 @@ export const useCSVUpload = () => {
             data_end_date: new Date(metric.data_end_date).toISOString(),
           }));
 
-          // Insert each record individually to avoid stack depth issues
-          for (const record of batch) {
-            const { error } = await supabase.rpc('upsert_ebay_listings_with_history', {
-              listings: [record]
-            });
+          const { data: results, error } = await supabase.rpc('upsert_ebay_listings_with_history', {
+            listings: batch
+          });
 
-            if (error) {
-              console.error('Record insert error:', error);
-              continue; // Continue with next record even if one fails
-            }
-            successCount++;
+          if (error) {
+            console.error('Batch error:', error);
+            errors.push(`Batch error: ${error.message}`);
+            continue;
           }
 
-          // Add a longer delay between batches
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Process results for each record in the batch
+          if (results) {
+            results.forEach(result => {
+              if (result.success) {
+                successCount++;
+              } else {
+                errorCount++;
+                errors.push(`Error with item ${result.ebay_item_id}: ${result.message}`);
+              }
+            });
+          }
 
-          console.log(`Processed ${successCount} of ${metrics.length} records`);
+          // Add a delay between batches to prevent overwhelming the database
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log(`Processed ${successCount + errorCount} of ${metrics.length} records`);
         } catch (error) {
           console.error('Batch processing error:', error);
-          // Continue with next batch even if one fails
+          errors.push(`Batch processing error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
 
       if (successCount === 0) {
-        throw new Error('Failed to process any records');
+        throw new Error('Failed to process any records successfully');
       }
 
+      // Show success toast with details
       toast({
         title: "Upload Complete",
-        description: `Successfully processed ${successCount} out of ${metrics.length} listings`,
+        description: `Successfully processed ${successCount} out of ${metrics.length} listings${
+          errorCount > 0 ? `. ${errorCount} records had errors.` : ''
+        }`,
+        ...(errorCount > 0 ? { variant: "warning" } : {})
       });
+
+      // If there were errors, show them in a separate toast
+      if (errors.length > 0) {
+        toast({
+          title: "Processing Errors",
+          description: `Some records had errors. Check the console for details.`,
+          variant: "destructive",
+        });
+        console.error('Processing errors:', errors);
+      }
 
       // Navigate after successful upload
       navigate('/listings');
