@@ -13,6 +13,7 @@ import AuthGuard from "./components/AuthGuard";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import RawData from "./pages/RawData";
+import Mapping from "./pages/Mapping";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,16 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <RawData />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/mapping"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <Mapping />
                 </Layout>
               </AuthGuard>
             }
