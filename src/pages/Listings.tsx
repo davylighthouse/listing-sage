@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -8,7 +7,7 @@ import { Eye, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
-interface ListingSummary {
+export interface ListingSummary {
   ebay_item_id: string;
   listing_title: string;
   total_records: number;
