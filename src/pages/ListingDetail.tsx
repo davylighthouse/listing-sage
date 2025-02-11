@@ -26,6 +26,7 @@ const ListingDetail = () => {
         throw error;
       }
 
+      console.log("Raw listing data:", data);
       return data;
     },
   });
@@ -52,6 +53,15 @@ const ListingDetail = () => {
   }
 
   const latestData = listingData[0];
+  console.log("Latest data being displayed:", latestData);
+  
+  const formatNumber = (value: number) => {
+    return value.toLocaleString('en-US');
+  };
+
+  const formatPercentage = (value: number) => {
+    return `${(value * 100).toFixed(2)}%`;
+  };
 
   return (
     <div className="p-8">
@@ -64,15 +74,15 @@ const ListingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Total Impressions</span>
-              <span>{latestData.total_impressions_ebay}</span>
+              <span>{formatNumber(latestData.total_impressions_ebay)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Click Through Rate</span>
-              <span>{latestData.click_through_rate}%</span>
+              <span>{formatPercentage(latestData.click_through_rate)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Quantity Sold</span>
-              <span>{latestData.quantity_sold}</span>
+              <span>{formatNumber(latestData.quantity_sold)}</span>
             </div>
           </div>
         </div>
@@ -82,11 +92,11 @@ const ListingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Top 20 Search Promoted</span>
-              <span>{latestData.top_20_search_slot_promoted_impressions}</span>
+              <span>{formatNumber(latestData.top_20_search_slot_promoted_impressions)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Top 20 Search Organic</span>
-              <span>{latestData.top_20_search_slot_organic_impressions}</span>
+              <span>{formatNumber(latestData.top_20_search_slot_organic_impressions)}</span>
             </div>
           </div>
         </div>
@@ -96,15 +106,15 @@ const ListingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Total Views</span>
-              <span>{latestData.total_page_views}</span>
+              <span>{formatNumber(latestData.total_page_views)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Organic eBay Views</span>
-              <span>{latestData.page_views_organic_ebay}</span>
+              <span>{formatNumber(latestData.page_views_organic_ebay)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Promoted eBay Views</span>
-              <span>{latestData.page_views_promoted_ebay}</span>
+              <span>{formatNumber(latestData.page_views_promoted_ebay)}</span>
             </div>
           </div>
         </div>
