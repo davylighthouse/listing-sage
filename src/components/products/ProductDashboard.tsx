@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +40,7 @@ const ProductDashboard = () => {
         .from("product_listings")
         .select(`
           *,
-          ebay_listings (
+          ebay_listing:ebay_listings!inner(
             listing_title,
             total_impressions_ebay,
             total_page_views,
@@ -52,7 +51,11 @@ const ProductDashboard = () => {
         .eq("product_id", productId);
 
       if (error) throw error;
-      return data as ProductListing[];
+
+      return data.map(item => ({
+        ...item,
+        ebay_listings: item.ebay_listing
+      })) as ProductListing[];
     },
     enabled: !!productId,
   });

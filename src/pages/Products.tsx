@@ -79,15 +79,22 @@ const ProductsPage = () => {
         .from("product_listings")
         .select(`
           *,
-          ebay_listings (
-            listing_title
+          ebay_listing:ebay_listings!inner(
+            listing_title,
+            total_impressions_ebay,
+            total_page_views,
+            quantity_sold,
+            click_through_rate
           )
         `)
         .eq("product_id", selectedProduct.id);
 
       if (error) throw error;
 
-      return data as ProductListing[];
+      return data.map(item => ({
+        ...item,
+        ebay_listings: item.ebay_listing
+      })) as ProductListing[];
     },
     enabled: !!selectedProduct?.id,
   });
