@@ -9,6 +9,7 @@ import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { ImpressionsBarChart } from "@/components/dashboard/ImpressionsBarChart";
 import { ImpressionsPieChart } from "@/components/dashboard/ImpressionsPieChart";
 import { CTRLineChart } from "@/components/dashboard/CTRLineChart";
+import { TopListingsTable } from "@/components/dashboard/TopListingsTable";
 
 const Dashboard = () => {
   const [data, setData] = useState<ListingMetrics[]>([]);
@@ -123,10 +124,13 @@ const Dashboard = () => {
         totalImpressions={averages.total_impressions}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <ImpressionsBarChart data={data} />
-        <ImpressionsPieChart data={impressionsSplit} />
-        <CTRLineChart data={data} />
+        <TopListingsTable data={data} rankCriteria={rankCriteria} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ImpressionsPieChart data={impressionsSplit} />
+          <CTRLineChart data={data} />
+        </div>
       </div>
 
       {data.length === 0 && (
@@ -141,4 +145,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
