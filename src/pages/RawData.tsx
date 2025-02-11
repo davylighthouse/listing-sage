@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Trash2 } from "lucide-react";
 
 interface ImportedFile {
   import_batch_id: string;
@@ -19,6 +20,7 @@ const RawDataPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
 
   // Query for imported files summary
   const { data: importedFiles, isLoading: filesLoading, error: filesError, refetch: refetchFiles } = useQuery({
@@ -63,7 +65,7 @@ const RawDataPage = () => {
   });
 
   // Query for raw data entries
-  const { data: rawData, isLoading: dataLoading, error: dataError } = useQuery({
+  const { data: rawData, isLoading: dataLoading, error: dataError, refetch: refetchData } = useQuery({
     queryKey: ["raw-data", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
@@ -128,6 +130,58 @@ const RawDataPage = () => {
     }
   };
 
+  const handleSelectEntry = (id: string) => {
+    setSelectedEntries(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(entryId => entryId !== id);
+      }
+      return [...prev, id];
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (rawData) {
+      if (selectedEntries.length === rawData.length) {
+        setSelectedEntries([]);
+      } else {
+        setSelectedEntries(rawData.map(entry => entry.id));
+      }
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!user?.id || selectedEntries.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from('ebay_listings')
+        .delete()
+        .eq('user_id', user.id)
+        .in('id', selectedEntries);
+
+      if (error) {
+        console.error('Error deleting entries:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: `${selectedEntries.length} entries have been deleted`,
+      });
+
+      setSelectedEntries([]);
+      refetchData();
+      refetchFiles();
+    } catch (error) {
+      console.error('Error deleting entries:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete entries",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-8 space-y-8">
       <div className="space-y-4">
@@ -171,11 +225,29 @@ const RawDataPage = () => {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Raw Data Entries</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Raw Data Entries</h2>
+          {selectedEntries.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteSelected}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Selected ({selectedEntries.length})
+            </Button>
+          )}
+        </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={rawData?.length === selectedEntries.length && rawData?.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Date Imported</TableHead>
                 <TableHead>File Name</TableHead>
                 <TableHead>Item ID</TableHead>
@@ -190,14 +262,20 @@ const RawDataPage = () => {
             <TableBody>
               {dataLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">Loading...</TableCell>
+                  <TableCell colSpan={10} className="text-center">Loading...</TableCell>
                 </TableRow>
               ) : rawData?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">No data available</TableCell>
+                  <TableCell colSpan={10} className="text-center">No data available</TableCell>
                 </TableRow>
               ) : rawData?.map((entry) => (
                 <TableRow key={`${entry.ebay_item_id}-${entry.created_at}`}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedEntries.includes(entry.id)}
+                      onCheckedChange={() => handleSelectEntry(entry.id)}
+                    />
+                  </TableCell>
                   <TableCell>{format(new Date(entry.created_at), 'PPp')}</TableCell>
                   <TableCell>{entry.file_name}</TableCell>
                   <TableCell>{entry.ebay_item_id}</TableCell>
@@ -218,4 +296,3 @@ const RawDataPage = () => {
 };
 
 export default RawDataPage;
-
