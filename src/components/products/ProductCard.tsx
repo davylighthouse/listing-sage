@@ -14,11 +14,11 @@ interface ProductCardProps {
   onAddListing: (product: Product) => void;
 }
 
-const ProductCard = ({ 
-  product, 
-  productListings, 
+const ProductCard = ({
+  product,
+  productListings,
   selectedProductId,
-  onAddListing 
+  onAddListing,
 }: ProductCardProps) => {
   const navigate = useNavigate();
 
@@ -38,10 +38,19 @@ const ProductCard = ({
     },
   });
 
+  const handleClick = () => {
+    navigate(`/products/${product.id}`);
+  };
+
+  const handleAddListingClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddListing(product);
+  };
+
   return (
-    <div 
+    <div
       className="bg-white p-4 rounded-lg border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => navigate(`/products/${product.id}`)}
+      onClick={handleClick}
     >
       <div className="flex items-center gap-4">
         <div className="w-24 h-24 rounded-lg border bg-gray-50 flex items-center justify-center overflow-hidden">
@@ -70,10 +79,7 @@ const ProductCard = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddListing(product);
-          }}
+          onClick={handleAddListingClick}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Listings

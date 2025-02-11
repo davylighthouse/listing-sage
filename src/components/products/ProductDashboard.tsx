@@ -10,11 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProductDashboard = () => {
   const { productId } = useParams();
 
-  const { data: product } = useQuery({
+  const { data: product, isLoading: isLoadingProduct } = useQuery({
     queryKey: ["product", productId],
     queryFn: async () => {
       if (!productId) throw new Error("No product ID provided");
@@ -31,7 +32,7 @@ const ProductDashboard = () => {
     enabled: !!productId,
   });
 
-  const { data: listings } = useQuery({
+  const { data: listings, isLoading: isLoadingListings } = useQuery({
     queryKey: ["product-listings", productId],
     queryFn: async () => {
       if (!productId) throw new Error("No product ID provided");
@@ -76,6 +77,19 @@ const ProductDashboard = () => {
       (sum, listing) => sum + (listing.ebay_listings?.click_through_rate || 0),
       0
     ) / (listings?.length || 1);
+
+  if (isLoadingProduct || isLoadingListings) {
+    return (
+      <div className="p-8 space-y-4">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">

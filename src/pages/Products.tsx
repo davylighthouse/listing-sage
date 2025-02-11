@@ -1,20 +1,13 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus } from "lucide-react";
 import { Product, ProductListing, AvailableListing } from "@/types/product";
-import ProductForm from "@/components/products/ProductForm";
 import ProductCard from "@/components/products/ProductCard";
+import ProductFormDialog from "@/components/products/ProductFormDialog";
+import AddListingsDialog from "@/components/products/AddListingsDialog";
 
 const ProductsPage = () => {
   const { toast } = useToast();
@@ -22,7 +15,6 @@ const ProductsPage = () => {
   const [open, setOpen] = useState(false);
   const [listingDialogOpen, setListingDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedListings, setSelectedListings] = useState<string[]>([]);
 
   const { data: products, refetch } = useQuery({
     queryKey: ["products", user?.id],
@@ -100,35 +92,7 @@ const ProductsPage = () => {
     enabled: !!selectedProduct?.id,
   });
 
-  const handleAddListing = async (ebayItemId: string) => {
-    if (!selectedProduct?.id || !user?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from("product_listings")
-        .insert({
-          product_id: selectedProduct.id,
-          ebay_item_id: ebayItemId,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Listing added to product successfully",
-      });
-      refetchProductListings();
-    } catch (error) {
-      console.error("Error adding listing to product:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add listing to product",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleAddListings = async () => {
+  const handleAddListings = async (selectedListings: string[]) => {
     if (!selectedProduct?.id || !user?.id || selectedListings.length === 0) return;
 
     try {
@@ -147,7 +111,6 @@ const ProductsPage = () => {
         title: "Success",
         description: `${selectedListings.length} listing(s) added to product successfully`,
       });
-      setSelectedListings([]);
       refetchProductListings();
       setListingDialogOpen(false);
     } catch (error) {
@@ -160,29 +123,15 @@ const ProductsPage = () => {
     }
   };
 
-  const toggleListingSelection = (ebayItemId: string) => {
-    setSelectedListings(prev => 
-      prev.includes(ebayItemId)
-        ? prev.filter(id => id !== ebayItemId)
-        : [...prev, ebayItemId]
-    );
-  };
-
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Product</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
-            </DialogHeader>
-            <ProductForm onSuccess={refetch} onClose={() => setOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <ProductFormDialog
+          open={open}
+          onOpenChange={setOpen}
+          onSuccess={refetch}
+        />
       </div>
 
       <div className="grid gap-4">
@@ -194,57 +143,19 @@ const ProductsPage = () => {
             selectedProductId={selectedProduct?.id}
             onAddListing={(product) => {
               setSelectedProduct(product);
-              setSelectedListings([]);
               setListingDialogOpen(true);
             }}
           />
         ))}
       </div>
 
-      {/* Listing Selection Dialog */}
-      <Dialog open={listingDialogOpen} onOpenChange={setListingDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add Listings to {selectedProduct?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                {selectedListings.length} listing(s) selected
-              </div>
-              <Button
-                onClick={handleAddListings}
-                disabled={selectedListings.length === 0}
-              >
-                Add Selected Listings
-              </Button>
-            </div>
-            <div className="max-h-[400px] overflow-y-auto space-y-2">
-              {availableListings?.map((listing) => (
-                <div
-                  key={listing.ebay_item_id}
-                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedListings.includes(listing.ebay_item_id)
-                      ? "bg-primary/10"
-                      : "hover:bg-gray-50"
-                  }`}
-                  onClick={() => toggleListingSelection(listing.ebay_item_id)}
-                >
-                  <div>
-                    <div className="font-medium">{listing.ebay_item_id}</div>
-                    <div className="text-sm text-gray-500">{listing.listing_title}</div>
-                  </div>
-                  <div className="w-5 h-5 rounded border flex items-center justify-center">
-                    {selectedListings.includes(listing.ebay_item_id) && (
-                      <div className="w-3 h-3 bg-primary rounded-sm" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AddListingsDialog
+        open={listingDialogOpen}
+        onOpenChange={setListingDialogOpen}
+        selectedProduct={selectedProduct}
+        availableListings={availableListings}
+        onAddListings={handleAddListings}
+      />
     </div>
   );
 };
