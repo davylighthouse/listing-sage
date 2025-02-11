@@ -30,17 +30,16 @@ export const useDataUpload = () => {
 
     console.log('Uploading batch:', formattedBatch);
 
+    // Add timeout configuration
     const { data: results, error } = await supabase.rpc('upsert_ebay_listings_with_history', {
       listings: formattedBatch
+    }, {
+      count: 'exact'
     });
 
     if (error) {
       console.error('Batch error:', error);
-      return {
-        successCount: 0,
-        errorCount: batch.length,
-        errors: [`Batch error: ${error.message}`]
-      };
+      throw error;
     }
 
     if (!results || !Array.isArray(results)) {
@@ -55,7 +54,7 @@ export const useDataUpload = () => {
     console.log('Batch results:', results);
 
     const processedResults = results.reduce((acc, result) => {
-      const isSuccess = result.success === true; // Explicit check for boolean true
+      const isSuccess = result.success === true;
       return {
         successCount: acc.successCount + (isSuccess ? 1 : 0),
         errorCount: acc.errorCount + (isSuccess ? 0 : 1),

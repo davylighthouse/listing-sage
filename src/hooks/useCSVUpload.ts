@@ -34,7 +34,7 @@ export const useCSVUpload = () => {
       const text = await file.text();
       const rows = text.split('\n')
         .map(row => row.split(',').map(cell => cell.trim()))
-        .filter(row => row.length > 1 && row.some(cell => cell.trim() !== '')); // Skip empty rows
+        .filter(row => row.length > 1 && row.some(cell => cell.trim() !== '')); 
       
       const headers = rows[0];
       validateCSVFormat(headers);
@@ -65,38 +65,55 @@ export const useCSVUpload = () => {
       setProcessedData(metrics);
 
       const importBatchId = crypto.randomUUID();
-      const batchSize = 5;
+      const batchSize = 2; // Reduced batch size to prevent timeouts
       let totalSuccessCount = 0;
       let totalErrorCount = 0;
       let allErrors: string[] = [];
+      let retryCount = 0;
+      const maxRetries = 3;
 
       for (let i = 0; i < metrics.length; i += batchSize) {
         const batch = metrics.slice(i, i + batchSize);
         console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(metrics.length / batchSize)}`);
         
-        const { successCount, errorCount, errors } = await uploadBatch(
-          batch,
-          user.id,
-          file.name,
-          importBatchId
-        );
+        let batchSuccess = false;
+        while (!batchSuccess && retryCount < maxRetries) {
+          try {
+            const { successCount, errorCount, errors } = await uploadBatch(
+              batch,
+              user.id,
+              file.name,
+              importBatchId
+            );
 
-        totalSuccessCount += successCount;
-        totalErrorCount += errorCount;
-        allErrors.push(...errors);
+            totalSuccessCount += successCount;
+            totalErrorCount += errorCount;
+            allErrors.push(...errors);
 
-        console.log(`Batch results - Success: ${successCount}, Errors: ${errorCount}`);
-        console.log(`Total progress - Success: ${totalSuccessCount}, Errors: ${totalErrorCount}`);
+            console.log(`Batch results - Success: ${successCount}, Errors: ${errorCount}`);
+            console.log(`Total progress - Success: ${totalSuccessCount}, Errors: ${totalErrorCount}`);
 
-        if (errors.length > 0) {
-          console.log('Batch errors:', errors);
+            if (errors.length > 0) {
+              console.log('Batch errors:', errors);
+            }
+
+            batchSuccess = true;
+          } catch (error) {
+            retryCount++;
+            if (retryCount >= maxRetries) {
+              console.error(`Failed to process batch after ${maxRetries} attempts:`, error);
+              allErrors.push(`Failed to process batch after ${maxRetries} attempts: ${error.message}`);
+              break;
+            }
+            // Wait longer between retries
+            await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
+          }
         }
 
-        // Add a small delay between batches
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Add a delay between batches
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
-      // Only throw error if no records were processed successfully
       if (totalSuccessCount === 0 && totalErrorCount > 0) {
         throw new Error('Failed to process any records successfully');
       }
