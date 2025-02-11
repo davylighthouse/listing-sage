@@ -30,7 +30,10 @@ const ProductCard = ({
           product_id: product.id
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching listing count:', error);
+        return 0;
+      }
       return data;
     },
   });
