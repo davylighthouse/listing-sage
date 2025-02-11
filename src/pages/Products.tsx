@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Upload, Eye, Plus } from "lucide-react";
-import type { ListingSummary } from "./Listings";
 
 interface Product {
   id: string;
@@ -27,7 +26,9 @@ interface Product {
 
 interface ProductListing {
   ebay_item_id: string;
-  listing_title: string;
+  ebay_listings: {
+    listing_title: string;
+  };
 }
 
 const ProductsPage = () => {
@@ -84,7 +85,7 @@ const ProductsPage = () => {
       if (error) throw error;
 
       // Group by ebay_item_id to get unique listings
-      const uniqueListings = data.reduce((acc: Record<string, ProductListing>, curr) => {
+      const uniqueListings = data.reduce((acc: Record<string, ProductListing["ebay_listings"] & { ebay_item_id: string }>, curr) => {
         if (!acc[curr.ebay_item_id]) {
           acc[curr.ebay_item_id] = {
             ebay_item_id: curr.ebay_item_id,
@@ -108,16 +109,15 @@ const ProductsPage = () => {
         .from("product_listings")
         .select(`
           ebay_item_id,
-          ebay_listings!inner(listing_title)
+          ebay_listings (
+            listing_title
+          )
         `)
         .eq("product_id", selectedProduct.id);
 
       if (error) throw error;
 
-      return data.map(item => ({
-        ebay_item_id: item.ebay_item_id,
-        listing_title: item.ebay_listings.listing_title
-      }));
+      return data as ProductListing[];
     },
     enabled: !!selectedProduct?.id,
   });
