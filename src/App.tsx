@@ -15,6 +15,7 @@ import ListingDetail from "./pages/ListingDetail";
 import RawData from "./pages/RawData";
 import Mapping from "./pages/Mapping";
 import Products from "./pages/Products";
+import ProductDashboard from "./components/products/ProductDashboard";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,16 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <Products />
+                </Layout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/products/:productId"
+            element={
+              <AuthGuard>
+                <Layout>
+                  <ProductDashboard />
                 </Layout>
               </AuthGuard>
             }
