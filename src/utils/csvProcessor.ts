@@ -6,28 +6,56 @@ const cleanNumericValue = (value: string): number => {
   const cleaned = value.replace(/[^0-9,.-]/g, '');
   // Replace commas with empty string to handle numbers like "233,679"
   const noCommas = cleaned.replace(/,/g, '');
-  const result = noCommas ? parseFloat(noCommas) : 0;
+  let result = 0;
+  
+  try {
+    result = noCommas ? parseFloat(noCommas) : 0;
+    if (isNaN(result)) {
+      console.warn('Invalid numeric value:', value);
+      result = 0;
+    }
+  } catch (error) {
+    console.error('Error parsing numeric value:', { value, error });
+    result = 0;
+  }
+
   console.log('Processing numeric value:', { 
     original: value, 
     cleaned, 
     noCommas, 
     result,
-    resultType: typeof result 
+    resultType: typeof result,
+    isNaN: isNaN(result)
   });
+  
   return result;
 };
 
 const cleanPercentage = (value: string): number => {
   // Remove any non-numeric characters except decimal point and minus sign
   const cleaned = value.replace(/[^0-9.-]/g, '');
-  // Convert percentage to decimal (e.g., 15.5 -> 0.155)
-  const result = cleaned ? parseFloat(cleaned) / 100 : 0;
+  let result = 0;
+  
+  try {
+    // Convert percentage to decimal (e.g., 15.5 -> 0.155)
+    result = cleaned ? parseFloat(cleaned) / 100 : 0;
+    if (isNaN(result)) {
+      console.warn('Invalid percentage value:', value);
+      result = 0;
+    }
+  } catch (error) {
+    console.error('Error parsing percentage:', { value, error });
+    result = 0;
+  }
+
   console.log('Processing percentage:', { 
     original: value, 
     cleaned, 
     result,
-    resultType: typeof result 
+    resultType: typeof result,
+    isNaN: isNaN(result)
   });
+  
   return result;
 };
 
@@ -87,6 +115,14 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_ebay: cleanNumericValue(cleanRow[22]),
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
+
+      // Validate all numeric fields
+      Object.entries(metric).forEach(([key, value]) => {
+        if (typeof value === 'number' && isNaN(value)) {
+          console.error('Invalid numeric value detected:', { field: key, value });
+          throw new Error(`Invalid numeric value for field: ${key}`);
+        }
+      });
 
       console.log('Processed row data:', {
         itemId: metric.ebay_item_id,
