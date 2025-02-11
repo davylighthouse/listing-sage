@@ -2,10 +2,8 @@
 export interface ListingMetrics {
   id?: string;
   user_id?: string;
-  data_start_date: string;
-  data_end_date: string;
-  listing_title: string;
   ebay_item_id: string;
+  listing_title: string;
   total_impressions_ebay: number;
   click_through_rate: number;
   quantity_sold: number;
@@ -26,8 +24,18 @@ export interface ListingMetrics {
   page_views_promoted_outside_ebay: number;
   page_views_organic_ebay: number;
   page_views_organic_outside_ebay: number;
+  data_start_date?: string;
+  data_end_date?: string;
   created_at?: string;
   updated_at?: string;
+  rank_by_sales?: number;
+  previous_rank?: number;
+  rank_change?: number;
+  last_rank_update?: string;
+  average_price?: number;
+  revenue?: number;
+  performance_score?: number;
+  image_url?: string;
 }
 
 export interface ProcessedData {

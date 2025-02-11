@@ -28,16 +28,46 @@ const Dashboard = () => {
       if (!user?.id) return;
 
       try {
-        const { data: listings, error } = await supabase
+        // First get the basic listing info
+        const { data: listings, error: listingsError } = await supabase
           .from('ebay_listings')
-          .select('*')
+          .select('id, ebay_item_id, listing_title, user_id')
           .eq('user_id', user.id);
 
-        if (error) {
-          throw error;
-        }
+        if (listingsError) throw listingsError;
 
-        setData(listings || []);
+        // Then get the latest metrics for each listing
+        const listingsWithMetrics = await Promise.all(
+          listings.map(async (listing) => {
+            const { data: metricsData, error: metricsError } = await supabase
+              .from('ebay_listing_history')
+              .select('*')
+              .eq('ebay_item_id', listing.ebay_item_id)
+              .order('data_end_date', { ascending: false })
+              .limit(1)
+              .single();
+
+            if (metricsError) {
+              console.error('Error fetching metrics:', metricsError);
+              return {
+                ...listing,
+                total_impressions_ebay: 0,
+                click_through_rate: 0,
+                quantity_sold: 0,
+                sales_conversion_rate: 0,
+                total_page_views: 0,
+                // Add other metrics with default values
+              } as ListingMetrics;
+            }
+
+            return {
+              ...listing,
+              ...metricsData,
+            } as ListingMetrics;
+          })
+        );
+
+        setData(listingsWithMetrics);
       } catch (error) {
         console.error('Error fetching listings:', error);
       } finally {
@@ -61,13 +91,13 @@ const Dashboard = () => {
     
     return data.reduce(
       (acc, item) => ({
-        avg_ctr: acc.avg_ctr + item.click_through_rate,
-        avg_conversion: acc.avg_conversion + item.sales_conversion_rate,
-        total_impressions: acc.total_impressions + item.total_impressions_ebay,
-        total_page_views: acc.total_page_views + item.total_page_views,
-        total_sales: acc.total_sales + item.quantity_sold,
-        organic_impressions: acc.organic_impressions + item.total_organic_impressions_ebay,
-        promoted_impressions: acc.promoted_impressions + item.total_promoted_listings_impressions,
+        avg_ctr: acc.avg_ctr + (item.click_through_rate || 0),
+        avg_conversion: acc.avg_conversion + (item.sales_conversion_rate || 0),
+        total_impressions: acc.total_impressions + (item.total_impressions_ebay || 0),
+        total_page_views: acc.total_page_views + (item.total_page_views || 0),
+        total_sales: acc.total_sales + (item.quantity_sold || 0),
+        organic_impressions: acc.organic_impressions + (item.total_organic_impressions_ebay || 0),
+        promoted_impressions: acc.promoted_impressions + (item.total_promoted_listings_impressions || 0),
       }),
       { 
         avg_ctr: 0, 
