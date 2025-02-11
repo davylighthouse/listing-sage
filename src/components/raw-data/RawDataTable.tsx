@@ -37,6 +37,7 @@ const formatPercentage = (value: number) => {
 };
 
 const formatNumber = (value: number) => {
+  console.log('Formatting number value:', value, typeof value);
   return value.toLocaleString('en-US');
 };
 
@@ -48,6 +49,8 @@ const RawDataTable = ({
   onSelectAll,
   onDeleteSelected
 }: RawDataTableProps) => {
+  console.log('Raw data received in table:', data);
+  
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -94,26 +97,29 @@ const RawDataTable = ({
               <TableRow>
                 <TableCell colSpan={11} className="text-center">No data available</TableCell>
               </TableRow>
-            ) : data?.map((entry) => (
-              <TableRow key={`${entry.ebay_item_id}-${entry.created_at}`}>
-                <TableCell>
-                  <Checkbox
-                    checked={selectedEntries.includes(entry.id)}
-                    onCheckedChange={() => onSelectEntry(entry.id)}
-                  />
-                </TableCell>
-                <TableCell>{format(new Date(entry.created_at), 'dd-MM-yyyy')}</TableCell>
-                <TableCell>{entry.file_name}</TableCell>
-                <TableCell>{entry.ebay_item_id}</TableCell>
-                <TableCell>{entry.listing_title}</TableCell>
-                <TableCell>{formatDate(entry.data_start_date)}</TableCell>
-                <TableCell>{formatDate(entry.data_end_date)}</TableCell>
-                <TableCell>{formatNumber(entry.total_impressions_ebay)}</TableCell>
-                <TableCell>{formatPercentage(entry.click_through_rate)}</TableCell>
-                <TableCell>{formatNumber(entry.quantity_sold)}</TableCell>
-                <TableCell>{formatPercentage(entry.sales_conversion_rate)}</TableCell>
-              </TableRow>
-            ))}
+            ) : data?.map((entry) => {
+              console.log('Rendering entry with impressions:', entry.total_impressions_ebay);
+              return (
+                <TableRow key={`${entry.ebay_item_id}-${entry.created_at}`}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedEntries.includes(entry.id)}
+                      onCheckedChange={() => onSelectEntry(entry.id)}
+                    />
+                  </TableCell>
+                  <TableCell>{format(new Date(entry.created_at), 'dd-MM-yyyy')}</TableCell>
+                  <TableCell>{entry.file_name}</TableCell>
+                  <TableCell>{entry.ebay_item_id}</TableCell>
+                  <TableCell>{entry.listing_title}</TableCell>
+                  <TableCell>{formatDate(entry.data_start_date)}</TableCell>
+                  <TableCell>{formatDate(entry.data_end_date)}</TableCell>
+                  <TableCell>{formatNumber(entry.total_impressions_ebay)}</TableCell>
+                  <TableCell>{formatPercentage(entry.click_through_rate)}</TableCell>
+                  <TableCell>{formatNumber(entry.quantity_sold)}</TableCell>
+                  <TableCell>{formatPercentage(entry.sales_conversion_rate)}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -122,3 +128,4 @@ const RawDataTable = ({
 };
 
 export default RawDataTable;
+
