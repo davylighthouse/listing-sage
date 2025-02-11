@@ -42,11 +42,23 @@ export const useCSVUpload = () => {
         throw new Error('No valid data rows found in the CSV file');
       }
       
+      // Store headers in raw_data table
+      const { error: headerError } = await supabase
+        .from('raw_data')
+        .insert({
+          user_id: user.id,
+          headers: headers,
+          file_name: file.name,
+        });
+
+      if (headerError) {
+        console.error('Error storing headers:', headerError);
+        throw new Error('Failed to store CSV headers');
+      }
+      
       setPreviewData([headers, ...rows.slice(1, 6)]); 
       const metrics = processCSVData(rows);
       setProcessedData(metrics);
-
-      console.log('Processed metrics:', metrics);
 
       // Generate a unique batch ID for this import
       const importBatchId = crypto.randomUUID();
