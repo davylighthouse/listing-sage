@@ -299,7 +299,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_product_listing_count: {
+        Args: {
+          product_id: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
