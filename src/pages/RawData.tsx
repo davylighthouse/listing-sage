@@ -2,37 +2,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2 } from "lucide-react";
-
-interface ImportedFile {
-  import_batch_id: string;
-  file_name: string;
-  created_at: string;
-  record_count: number;
-}
-
-const formatDate = (date: string) => {
-  return format(new Date(date), 'dd-MM-yyyy');
-};
-
-const formatPercentage = (value: number) => {
-  return `${(value * 100).toFixed(2)}%`;
-};
-
-const formatNumber = (value: number) => {
-  return value.toLocaleString('en-US');
-};
+import ImportedFilesTable from "@/components/raw-data/ImportedFilesTable";
+import RawDataTable from "@/components/raw-data/RawDataTable";
 
 const RawDataPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
 
   // Query for imported files summary
@@ -58,7 +35,7 @@ const RawDataPage = () => {
       console.log("Received files data:", data);
 
       // Group by import batch and count records
-      const filesSummary = data.reduce((acc: Record<string, ImportedFile>, curr) => {
+      const filesSummary = data.reduce((acc: Record<string, any>, curr) => {
         if (!acc[curr.import_batch_id]) {
           acc[curr.import_batch_id] = {
             import_batch_id: curr.import_batch_id,
@@ -133,6 +110,7 @@ const RawDataPage = () => {
       });
 
       refetchFiles();
+      refetchData();
     } catch (error) {
       console.error('Error deleting file:', error);
       toast({
@@ -197,115 +175,19 @@ const RawDataPage = () => {
 
   return (
     <div className="container mx-auto p-8 space-y-8">
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Imported Files</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>File Name</TableHead>
-              <TableHead>Import Date</TableHead>
-              <TableHead>Records</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filesLoading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">Loading...</TableCell>
-              </TableRow>
-            ) : importedFiles?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">No files imported yet</TableCell>
-              </TableRow>
-            ) : importedFiles?.map((file) => (
-              <TableRow key={file.import_batch_id}>
-                <TableCell>{file.file_name}</TableCell>
-                <TableCell>{format(new Date(file.created_at), 'PPp')}</TableCell>
-                <TableCell>{formatNumber(file.record_count)}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteFile(file.import_batch_id)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Raw Data Entries</h2>
-          {selectedEntries.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleDeleteSelected}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Selected ({selectedEntries.length})
-            </Button>
-          )}
-        </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={rawData?.length === selectedEntries.length && rawData?.length > 0}
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>Date Imported</TableHead>
-                <TableHead>File Name</TableHead>
-                <TableHead>Item ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Impressions</TableHead>
-                <TableHead>CTR</TableHead>
-                <TableHead>Sales</TableHead>
-                <TableHead>Conv. Rate</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dataLoading ? (
-                <TableRow>
-                  <TableCell colSpan={11} className="text-center">Loading...</TableCell>
-                </TableRow>
-              ) : rawData?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={11} className="text-center">No data available</TableCell>
-                </TableRow>
-              ) : rawData?.map((entry) => (
-                <TableRow key={`${entry.ebay_item_id}-${entry.created_at}`}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedEntries.includes(entry.id)}
-                      onCheckedChange={() => handleSelectEntry(entry.id)}
-                    />
-                  </TableCell>
-                  <TableCell>{format(new Date(entry.created_at), 'dd-MM-yyyy')}</TableCell>
-                  <TableCell>{entry.file_name}</TableCell>
-                  <TableCell>{entry.ebay_item_id}</TableCell>
-                  <TableCell>{entry.listing_title}</TableCell>
-                  <TableCell>{formatDate(entry.data_start_date)}</TableCell>
-                  <TableCell>{formatDate(entry.data_end_date)}</TableCell>
-                  <TableCell>{formatNumber(entry.total_impressions_ebay)}</TableCell>
-                  <TableCell>{formatPercentage(entry.click_through_rate)}</TableCell>
-                  <TableCell>{formatNumber(entry.quantity_sold)}</TableCell>
-                  <TableCell>{formatPercentage(entry.sales_conversion_rate)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      <ImportedFilesTable
+        files={importedFiles}
+        isLoading={filesLoading}
+        onDeleteFile={handleDeleteFile}
+      />
+      <RawDataTable
+        data={rawData}
+        isLoading={dataLoading}
+        selectedEntries={selectedEntries}
+        onSelectEntry={handleSelectEntry}
+        onSelectAll={handleSelectAll}
+        onDeleteSelected={handleDeleteSelected}
+      />
     </div>
   );
 };
