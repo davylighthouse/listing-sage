@@ -1,45 +1,34 @@
-
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
-  console.log('Cleaning numeric value:', value);
-  
-  // Handle null/undefined
-  if (!value) {
-    console.log('Null/undefined value, returning 0');
-    return 0;
-  }
-
-  // Clean up the string
-  let cleanedValue = value.toString().trim();
-  
-  // Handle empty string or special cases
-  if (cleanedValue === '' || cleanedValue.toLowerCase() === 'n/a' || cleanedValue === '-') {
-    console.log('Empty or special case value, returning 0');
+  // Handle null/undefined/empty
+  if (!value || value.trim() === "") {
+    console.log('Empty value, returning 0');
     return 0;
   }
 
   try {
     // Handle numbers in parentheses (negative numbers)
+    let cleanedValue = value.toString().trim();
     if (cleanedValue.startsWith('(') && cleanedValue.endsWith(')')) {
       cleanedValue = '-' + cleanedValue.slice(1, -1);
     }
 
-    // Remove any currency symbols, commas and spaces
-    const withoutCurrency = cleanedValue.replace(/[$£€,\s]/g, '');
-    console.log('Cleaned value for parsing:', withoutCurrency);
+    // Remove commas and any non-numeric characters except decimal points and minus signs
+    const cleaned = cleanedValue.replace(/,/g, "").replace(/[^0-9.-]/g, "");
+    console.log('Cleaned value:', cleaned);
     
-    const parsedValue = parseFloat(withoutCurrency);
+    const parsed = cleaned ? parseFloat(cleaned) : 0;
     
-    if (!isNaN(parsedValue) && isFinite(parsedValue)) {
-      console.log('Successfully parsed numeric value:', parsedValue);
-      return parsedValue;
+    if (!isNaN(parsed) && isFinite(parsed)) {
+      console.log('Successfully parsed:', parsed);
+      return parsed;
     }
     
-    console.log('Failed to parse value, returning 0');
+    console.log('Failed to parse, returning 0');
     return 0;
   } catch (error) {
-    console.error('Error parsing numeric value:', error);
+    console.error('Error parsing value:', error);
     return 0;
   }
 };
@@ -49,24 +38,24 @@ const cleanPercentage = (value: string): number => {
     return 0;
   }
 
-  let cleaned = value.trim();
-  
-  // Handle percentages in parentheses (negative percentages)
-  if (cleaned.startsWith('(') && cleaned.endsWith(')')) {
-    cleaned = '-' + cleaned.slice(1, -1);
-  }
-
-  // Remove % symbol and spaces
-  cleaned = cleaned.replace(/[%\s]/g, '');
-  
-  if (cleaned.toLowerCase() === 'n/a' || cleaned === '-') {
-    return 0;
-  }
-
   try {
+    let cleaned = value.trim();
+    
+    // Handle percentages in parentheses (negative percentages)
+    if (cleaned.startsWith('(') && cleaned.endsWith(')')) {
+      cleaned = '-' + cleaned.slice(1, -1);
+    }
+
+    // Remove % symbol and any non-numeric characters except decimal points and minus signs
+    cleaned = cleaned.replace(/[^0-9.-]/g, '');
+    
+    if (cleaned === '' || cleaned.toLowerCase() === 'n/a' || cleaned === '-') {
+      return 0;
+    }
+
     const parsed = parseFloat(cleaned);
     if (!isNaN(parsed) && isFinite(parsed)) {
-      // Convert percentage to decimal (e.g., 0.7% becomes 0.007)
+      // Convert percentage to decimal
       return parsed / 100;
     }
     return 0;
