@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { ListingMetrics } from "@/types/listing";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,11 +18,23 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { KPICards } from "@/components/dashboard/KPICards";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Dashboard = () => {
   const [data, setData] = useState<ListingMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [timeframe, setTimeframe] = useState("week");
+  const [rankCriteria, setRankCriteria] = useState("quantity_sold");
 
   const formatDate = (date: string) => {
     return format(new Date(date), 'dd/MM/yyyy');
@@ -112,34 +123,60 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 animate-fade-in">
-      <h1 className="text-2xl font-bold mb-6">Performance Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Performance Dashboard</h1>
+        
+        <div className="flex gap-6 items-end">
+          <div className="space-y-2">
+            <Input
+              placeholder="Search by title or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Ranking Filter</label>
+            <Select value={rankCriteria} onValueChange={setRankCriteria}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Rank by" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="quantity_sold">Quantity Sold</SelectItem>
+                <SelectItem value="total_impressions_ebay">Impressions</SelectItem>
+                <SelectItem value="click_through_rate">CTR</SelectItem>
+                <SelectItem value="total_page_views">Page Views</SelectItem>
+                <SelectItem value="sales_conversion_rate">Conversion Rate</SelectItem>
+                <SelectItem value="page_views_promoted_ebay">Promoted Views (eBay)</SelectItem>
+                <SelectItem value="page_views_promoted_outside_ebay">Promoted Views (External)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card className="p-6">
-          <h3 className="text-sm font-medium text-gray-500">Avg Click-Through Rate</h3>
-          <p className="text-2xl font-bold">
-            {(averages.avg_ctr / (data.length || 1)).toFixed(4)}%
-          </p>
-        </Card>
-        <Card className="p-6">
-          <h3 className="text-sm font-medium text-gray-500">Avg Conversion Rate</h3>
-          <p className="text-2xl font-bold">
-            {(averages.avg_conversion / (data.length || 1)).toFixed(2)}%
-          </p>
-        </Card>
-        <Card className="p-6">
-          <h3 className="text-sm font-medium text-gray-500">Total Page Views</h3>
-          <p className="text-2xl font-bold">
-            {averages.total_page_views.toLocaleString()}
-          </p>
-        </Card>
-        <Card className="p-6">
-          <h3 className="text-sm font-medium text-gray-500">Total Sales</h3>
-          <p className="text-2xl font-bold">
-            {averages.total_sales.toLocaleString()}
-          </p>
-        </Card>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Time Filter</label>
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Timeframe" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="week">Weekly</SelectItem>
+                <SelectItem value="month">Monthly</SelectItem>
+                <SelectItem value="quarter">Quarterly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
+
+      <KPICards
+        avgCTR={averages.avg_ctr / (data.length || 1)}
+        avgConversion={averages.avg_conversion / (data.length || 1)}
+        totalPageViews={averages.total_page_views}
+        totalSales={averages.total_sales}
+        totalImpressions={averages.total_impressions}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
@@ -241,4 +278,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
