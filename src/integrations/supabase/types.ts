@@ -472,6 +472,12 @@ export type Database = {
           weighted_value: number
         }[]
       }
+      upsert_ebay_listings: {
+        Args: {
+          listings: Json[]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       metric_name:
