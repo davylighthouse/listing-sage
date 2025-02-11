@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,24 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const isSettingsPage = window.location.pathname.includes('settings');
 
-  // Redirect if already logged in
-  if (user && !window.location.pathname.includes('settings')) {
+  // Effect to set email when user is available
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
+
+  // Only redirect if not on settings page
+  if (user && !isSettingsPage) {
     navigate("/dashboard");
+    return null;
+  }
+
+  // If on settings page but not logged in, redirect to auth
+  if (!user && isSettingsPage) {
+    navigate("/auth");
     return null;
   }
 
@@ -78,9 +92,18 @@ const Auth = () => {
     }
   };
 
-  const handlePasswordReset = async () => {
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       setLoading(true);
+      
+      // Get current session to ensure we're authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("No active session found");
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
@@ -94,6 +117,9 @@ const Auth = () => {
       
       // Clear the password field after successful update
       setPassword("");
+      
+      // Redirect to dashboard after successful password update
+      navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Error",
@@ -109,8 +135,10 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md p-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Welcome</h2>
-          {user && (
+          <h2 className="text-2xl font-bold">
+            {isSettingsPage ? "Update Password" : "Welcome"}
+          </h2>
+          {user && !isSettingsPage && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -118,14 +146,14 @@ const Auth = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onSelect={handlePasswordReset}>
+                <DropdownMenuItem onSelect={() => navigate("/settings")}>
                   Reset Password
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
-        <form onSubmit={user ? handlePasswordReset : handleLogin} className="space-y-4">
+        <form onSubmit={isSettingsPage ? handlePasswordReset : handleLogin} className="space-y-4">
           <div>
             <Input
               type="email"
@@ -133,13 +161,13 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={user !== null}
+              disabled={isSettingsPage || user !== null}
             />
           </div>
           <div>
             <Input
               type="password"
-              placeholder="Password"
+              placeholder={isSettingsPage ? "New Password" : "Password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -147,9 +175,9 @@ const Auth = () => {
           </div>
           <div className="flex flex-col gap-2">
             <Button type="submit" disabled={loading}>
-              {loading ? "Loading..." : (user ? "Update Password" : "Sign In")}
+              {loading ? "Loading..." : (isSettingsPage ? "Update Password" : "Sign In")}
             </Button>
-            {!user && (
+            {!isSettingsPage && !user && (
               <Button type="button" variant="outline" onClick={handleSignUp} disabled={loading}>
                 Sign Up
               </Button>
