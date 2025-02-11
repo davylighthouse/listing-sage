@@ -65,65 +65,53 @@ export const useCSVUpload = () => {
       setProcessedData(metrics);
 
       const importBatchId = crypto.randomUUID();
-      const batchSize = 2; // Reduced batch size to prevent timeouts
+      const batchSize = 25; // Increased batch size
       let totalSuccessCount = 0;
       let totalErrorCount = 0;
       let allErrors: string[] = [];
-      let retryCount = 0;
-      const maxRetries = 3;
 
       for (let i = 0; i < metrics.length; i += batchSize) {
         const batch = metrics.slice(i, i + batchSize);
-        console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(metrics.length / batchSize)}`);
+        console.log(`Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(metrics.length / batchSize)}`);
         
-        let batchSuccess = false;
-        while (!batchSuccess && retryCount < maxRetries) {
-          try {
-            const { successCount, errorCount, errors } = await uploadBatch(
-              batch,
-              user.id,
-              file.name,
-              importBatchId
-            );
+        try {
+          const { successCount, errorCount, errors } = await uploadBatch(
+            batch,
+            user.id,
+            file.name,
+            importBatchId
+          );
 
-            totalSuccessCount += successCount;
-            totalErrorCount += errorCount;
-            allErrors.push(...errors);
+          totalSuccessCount += successCount;
+          totalErrorCount += errorCount;
+          allErrors.push(...errors);
 
-            console.log(`Batch results - Success: ${successCount}, Errors: ${errorCount}`);
-            console.log(`Total progress - Success: ${totalSuccessCount}, Errors: ${totalErrorCount}`);
+          console.log(`Batch results - Success: ${successCount}, Errors: ${errorCount}`);
+          console.log(`Total progress - Success: ${totalSuccessCount}, Errors: ${totalErrorCount}`);
 
-            if (errors.length > 0) {
-              console.log('Batch errors:', errors);
-            }
-
-            batchSuccess = true;
-          } catch (error) {
-            retryCount++;
-            if (retryCount >= maxRetries) {
-              console.error(`Failed to process batch after ${maxRetries} attempts:`, error);
-              allErrors.push(`Failed to process batch after ${maxRetries} attempts: ${error.message}`);
-              break;
-            }
-            // Wait longer between retries
-            await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
+          if (errors.length > 0) {
+            console.log('Batch errors:', errors);
           }
+
+        } catch (error) {
+          console.error(`Failed to process batch:`, error);
+          totalErrorCount += batch.length;
+          allErrors.push(`Failed to process batch: ${error.message}`);
+          continue; // Continue with next batch even if this one fails
         }
 
-        // Add a delay between batches
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Small delay between batches to prevent overwhelming the database
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      if (totalSuccessCount === 0 && totalErrorCount > 0) {
-        throw new Error('Failed to process any records successfully');
-      }
-
+      const successMessage = `Successfully processed ${totalSuccessCount} out of ${metrics.length} listings`;
+      const errorSuffix = totalErrorCount > 0 ? `. ${totalErrorCount} records had errors.` : '';
+      
       toast({
-        title: "Upload Complete",
-        description: `Successfully processed ${totalSuccessCount} out of ${metrics.length} listings${
-          totalErrorCount > 0 ? `. ${totalErrorCount} records had errors.` : ''
-        }`,
-        variant: totalErrorCount > 0 ? "destructive" : "default"
+        title: totalSuccessCount > 0 ? "Upload Complete" : "Upload Failed",
+        description: successMessage + errorSuffix,
+        variant: totalErrorCount === metrics.length ? "destructive" : 
+                totalErrorCount > 0 ? "default" : "default"
       });
 
       if (allErrors.length > 0) {
