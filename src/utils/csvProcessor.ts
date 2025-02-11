@@ -1,22 +1,33 @@
-
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
-  // First remove any currency symbols, spaces, and percentage signs
-  const cleaned = value.replace(/[^0-9,.-]/g, '');
+  // Handle empty or whitespace-only values
+  if (!value || value.trim() === '') {
+    return 0;
+  }
+
+  // First remove any currency symbols and spaces
+  const cleaned = value.trim().replace(/[$£€\s]/g, '');
+  
+  // Check if the string contains a percentage sign and handle accordingly
+  if (cleaned.includes('%')) {
+    return cleanPercentage(cleaned);
+  }
+  
   // Replace commas with empty string to handle numbers like "233,679"
   const noCommas = cleaned.replace(/,/g, '');
-  let result = 0;
   
-  try {
-    result = noCommas ? parseFloat(noCommas) : 0;
-    if (isNaN(result)) {
-      console.warn('Invalid numeric value:', value);
-      result = 0;
-    }
-  } catch (error) {
-    console.error('Error parsing numeric value:', { value, error });
-    result = 0;
+  // Validate that we have a proper numeric string
+  if (!/^-?\d*\.?\d+$/.test(noCommas)) {
+    console.warn('Invalid numeric string format:', { original: value, cleaned: noCommas });
+    return 0;
+  }
+
+  const result = parseFloat(noCommas);
+  
+  if (isNaN(result)) {
+    console.warn('Failed to parse numeric value:', value);
+    return 0;
   }
 
   console.log('Processing numeric value:', { 
@@ -24,53 +35,86 @@ const cleanNumericValue = (value: string): number => {
     cleaned, 
     noCommas, 
     result,
-    resultType: typeof result,
-    isNaN: isNaN(result)
+    resultType: typeof result
   });
   
   return result;
 };
 
 const cleanPercentage = (value: string): number => {
-  // Remove any non-numeric characters except decimal point and minus sign
-  const cleaned = value.replace(/[^0-9.-]/g, '');
-  let result = 0;
-  
-  try {
-    // Convert percentage to decimal (e.g., 15.5 -> 0.155)
-    result = cleaned ? parseFloat(cleaned) / 100 : 0;
-    if (isNaN(result)) {
-      console.warn('Invalid percentage value:', value);
-      result = 0;
-    }
-  } catch (error) {
-    console.error('Error parsing percentage:', { value, error });
-    result = 0;
+  // Handle empty or whitespace-only values
+  if (!value || value.trim() === '') {
+    return 0;
   }
+
+  // Remove spaces and percentage signs, keeping negative signs and decimals
+  const cleaned = value.trim().replace(/[%\s]/g, '');
+  
+  // Validate that we have a proper percentage string
+  if (!/^-?\d*\.?\d+$/.test(cleaned)) {
+    console.warn('Invalid percentage string format:', { original: value, cleaned });
+    return 0;
+  }
+
+  // Convert percentage to decimal (e.g., 15.5 -> 0.155)
+  const parsed = parseFloat(cleaned);
+  if (isNaN(parsed)) {
+    console.warn('Failed to parse percentage value:', value);
+    return 0;
+  }
+
+  const result = parsed / 100;
 
   console.log('Processing percentage:', { 
     original: value, 
     cleaned, 
+    parsed,
     result,
-    resultType: typeof result,
-    isNaN: isNaN(result)
+    resultType: typeof result
   });
   
   return result;
 };
 
 const parseDate = (dateStr: string): string => {
+  if (!dateStr || dateStr.trim() === '') {
+    console.warn('Empty date string provided');
+    return new Date().toISOString();
+  }
+
   try {
-    const date = new Date(dateStr);
+    // Remove any extra whitespace
+    const cleanedDate = dateStr.trim();
+    const date = new Date(cleanedDate);
+    
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date:', dateStr);
-      return new Date().toISOString(); // Fallback to current date if invalid
+      console.warn('Invalid date format:', dateStr);
+      return new Date().toISOString();
     }
+    
     return date.toISOString();
   } catch (error) {
-    console.error('Error parsing date:', dateStr, error);
-    return new Date().toISOString(); // Fallback to current date if error
+    console.error('Error parsing date:', { dateStr, error });
+    return new Date().toISOString();
   }
+};
+
+const validateRow = (row: string[]): boolean => {
+  if (row.length < 24) {
+    console.error('Invalid row length:', { expected: 24, received: row.length });
+    return false;
+  }
+
+  // Check for required string fields
+  if (!row[2]?.trim() || !row[3]?.trim()) {
+    console.error('Missing required fields:', { 
+      listing_title: row[2], 
+      ebay_item_id: row[3] 
+    });
+    return false;
+  }
+
+  return true;
 };
 
 export const processCSVData = (rows: string[][]): ListingMetrics[] => {
@@ -83,8 +127,8 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     // Filter out empty values that might come from trailing commas
     const cleanRow = row.filter(cell => cell !== '');
     
-    if (cleanRow.length < 24) {
-      console.warn('Skipping row with insufficient columns:', cleanRow.length, 'columns found (minimum 24 required)');
+    if (!validateRow(cleanRow)) {
+      console.warn('Skipping invalid row:', cleanRow);
       continue;
     }
 
@@ -116,15 +160,15 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
-      // Validate all numeric fields
+      // Final validation of all numeric fields
       Object.entries(metric).forEach(([key, value]) => {
-        if (typeof value === 'number' && isNaN(value)) {
+        if (typeof value === 'number' && (isNaN(value) || !isFinite(value))) {
           console.error('Invalid numeric value detected:', { field: key, value });
           throw new Error(`Invalid numeric value for field: ${key}`);
         }
       });
 
-      console.log('Processed row data:', {
+      console.log('Successfully processed row:', {
         itemId: metric.ebay_item_id,
         title: metric.listing_title,
         impressions: metric.total_impressions_ebay,
@@ -134,7 +178,7 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
 
       metrics.push(metric);
     } catch (error) {
-      console.error('Error processing row:', cleanRow, error);
+      console.error('Error processing row:', { row: cleanRow, error });
       continue;
     }
   }
