@@ -118,7 +118,7 @@ const Dashboard = () => {
         <Card className="p-6">
           <h3 className="text-sm font-medium text-gray-500">Avg Click-Through Rate</h3>
           <p className="text-2xl font-bold">
-            {(averages.avg_ctr / (data.length || 1)).toFixed(2)}%
+            {(averages.avg_ctr / (data.length || 1)).toFixed(4)}%
           </p>
         </Card>
         <Card className="p-6">
@@ -241,3 +241,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
