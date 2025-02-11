@@ -1,3 +1,4 @@
+
 import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
@@ -17,9 +18,20 @@ const cleanNumericValue = (value: string): number => {
   // Replace commas with empty string to handle numbers like "233,679"
   const noCommas = cleaned.replace(/,/g, '');
   
+  // Handle specific text values
+  if (noCommas.toLowerCase() === 'n/a' || noCommas === '-') {
+    return 0;
+  }
+
   // Validate that we have a proper numeric string
+  // Allow decimal points and negative signs
   if (!/^-?\d*\.?\d+$/.test(noCommas)) {
     console.warn('Invalid numeric string format:', { original: value, cleaned: noCommas });
+    // Try parsing anyway in case our regex is too strict
+    const parsed = parseFloat(noCommas);
+    if (!isNaN(parsed)) {
+      return parsed;
+    }
     return 0;
   }
 
@@ -30,14 +42,6 @@ const cleanNumericValue = (value: string): number => {
     return 0;
   }
 
-  console.log('Processing numeric value:', { 
-    original: value, 
-    cleaned, 
-    noCommas, 
-    result,
-    resultType: typeof result
-  });
-  
   return result;
 };
 
@@ -50,9 +54,25 @@ const cleanPercentage = (value: string): number => {
   // Remove spaces and percentage signs, keeping negative signs and decimals
   const cleaned = value.trim().replace(/[%\s]/g, '');
   
+  // Handle specific text values
+  if (cleaned.toLowerCase() === 'n/a' || cleaned === '-') {
+    return 0;
+  }
+
+  // Handle empty string after cleaning
+  if (!cleaned) {
+    return 0;
+  }
+
   // Validate that we have a proper percentage string
+  // Allow decimal points and negative signs
   if (!/^-?\d*\.?\d+$/.test(cleaned)) {
     console.warn('Invalid percentage string format:', { original: value, cleaned });
+    // Try parsing anyway in case our regex is too strict
+    const parsed = parseFloat(cleaned);
+    if (!isNaN(parsed)) {
+      return parsed / 100;
+    }
     return 0;
   }
 
@@ -63,17 +83,7 @@ const cleanPercentage = (value: string): number => {
     return 0;
   }
 
-  const result = parsed / 100;
-
-  console.log('Processing percentage:', { 
-    original: value, 
-    cleaned, 
-    parsed,
-    result,
-    resultType: typeof result
-  });
-  
-  return result;
+  return parsed / 100;
 };
 
 const parseDate = (dateStr: string): string => {
@@ -133,6 +143,14 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     }
 
     try {
+      // Log raw values before processing
+      console.log('Processing row:', {
+        impressions: cleanRow[4],
+        ctr: cleanRow[5],
+        quantity: cleanRow[6],
+        conversion: cleanRow[7]
+      });
+
       const metric: ListingMetrics = {
         data_start_date: parseDate(cleanRow[0]),
         data_end_date: parseDate(cleanRow[1]),
@@ -160,20 +178,20 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         page_views_organic_outside_ebay: cleanNumericValue(cleanRow[23])
       };
 
+      // Log processed values for verification
+      console.log('Processed values:', {
+        impressions: metric.total_impressions_ebay,
+        ctr: metric.click_through_rate,
+        quantity: metric.quantity_sold,
+        conversion: metric.sales_conversion_rate
+      });
+
       // Final validation of all numeric fields
       Object.entries(metric).forEach(([key, value]) => {
         if (typeof value === 'number' && (isNaN(value) || !isFinite(value))) {
           console.error('Invalid numeric value detected:', { field: key, value });
           throw new Error(`Invalid numeric value for field: ${key}`);
         }
-      });
-
-      console.log('Successfully processed row:', {
-        itemId: metric.ebay_item_id,
-        title: metric.listing_title,
-        impressions: metric.total_impressions_ebay,
-        ctr: metric.click_through_rate,
-        sales: metric.quantity_sold
       });
 
       metrics.push(metric);
@@ -186,3 +204,4 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
   console.log(`Successfully processed ${metrics.length} rows from CSV`);
   return metrics;
 };
+
