@@ -39,20 +39,33 @@ export const DataMappingForm = () => {
         .select('headers')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching headers:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load column headers",
+          variant: "destructive",
+        });
         return;
       }
 
       if (data?.headers) {
         setAvailableColumns(data.headers);
+      } else {
+        // No data available yet
+        setAvailableColumns([]);
+        toast({
+          title: "No Data",
+          description: "Please upload a CSV file first to map columns",
+          variant: "default",
+        });
       }
     };
 
     fetchLatestHeaders();
-  }, [user?.id]);
+  }, [user?.id, toast]);
 
   const handleSaveMapping = async () => {
     if (!user?.id) {
