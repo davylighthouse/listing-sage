@@ -48,12 +48,17 @@ export const useCSVUpload = () => {
 
       console.log('Processed metrics:', metrics);
 
+      // Generate a unique batch ID for this import
+      const importBatchId = crypto.randomUUID();
+
       // Insert the processed data into Supabase
       const { error } = await supabase
         .from('ebay_listings')
         .insert(
           metrics.map(metric => ({
             user_id: user.id,
+            file_name: file.name,
+            import_batch_id: importBatchId,
             ...metric,
             data_start_date: new Date(metric.data_start_date).toISOString(),
             data_end_date: new Date(metric.data_end_date).toISOString(),
