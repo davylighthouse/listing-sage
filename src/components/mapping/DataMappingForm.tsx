@@ -58,10 +58,10 @@ export const DataMappingForm = () => {
       const { error } = await supabase
         .from("column_mappings")
         .upsert(
-          Object.entries(mappings).map(([key, value]) => ({
+          Object.entries(mappings).map(([targetField, sourceColumn]) => ({
             user_id: user.id,
-            target_field: key,
-            source_column: value,
+            target_field: targetField,
+            source_column: sourceColumn,
             updated_at: new Date().toISOString(),
           }))
         );
