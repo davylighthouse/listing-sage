@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,18 +61,33 @@ const RawDataPage = () => {
         throw new Error("User not authenticated");
       }
 
-      const { data, error } = await supabase
+      // First get all ebay listings
+      const { data: listings, error: listingsError } = await supabase
+        .from('ebay_listings')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (listingsError) throw listingsError;
+
+      // Then get the history data
+      const { data: history, error: historyError } = await supabase
         .from('ebay_listing_history')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching raw data:", error);
-        throw error;
-      }
+      if (historyError) throw historyError;
 
-      return data;
+      // Merge the data
+      const mergedData = history.map(historyEntry => {
+        const listing = listings.find(l => l.ebay_item_id === historyEntry.ebay_item_id);
+        return {
+          ...historyEntry,
+          listing_title: listing?.listing_title || 'Unknown Listing'
+        };
+      });
+
+      return mergedData;
     },
     enabled: !!user?.id,
   });

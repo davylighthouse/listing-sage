@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,7 @@ interface RawDataEntry {
   page_views_promoted_outside_ebay: number;
   page_views_organic_ebay: number;
   page_views_organic_outside_ebay: number;
+  import_batch_id: string;
 }
 
 interface RawDataTableProps {
@@ -115,16 +115,17 @@ const RawDataTable = ({
               <TableHead>PV Promoted Outside</TableHead>
               <TableHead>PV Organic eBay</TableHead>
               <TableHead>PV Organic Outside</TableHead>
+              <TableHead>Import Batch ID</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={27} className="text-center">Loading...</TableCell>
+                <TableCell colSpan={28} className="text-center">Loading...</TableCell>
               </TableRow>
             ) : data?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={27} className="text-center">No data available</TableCell>
+                <TableCell colSpan={28} className="text-center">No data available</TableCell>
               </TableRow>
             ) : data?.map((entry) => (
               <TableRow key={entry.id}>
@@ -160,6 +161,7 @@ const RawDataTable = ({
                 <TableCell>{formatNumber(entry.page_views_promoted_outside_ebay)}</TableCell>
                 <TableCell>{formatNumber(entry.page_views_organic_ebay)}</TableCell>
                 <TableCell>{formatNumber(entry.page_views_organic_outside_ebay)}</TableCell>
+                <TableCell>{entry.import_batch_id}</TableCell>
               </TableRow>
             ))}
           </TableBody>
