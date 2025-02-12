@@ -2,12 +2,16 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useCSVUpload } from "@/hooks/useCSVUpload";
+import { useToast } from "@/hooks/use-toast";
 
 const TestUpload = () => {
   const { handleDrop, handleFileInput, isUploading, previewData } = useCSVUpload();
+  const { toast } = useToast();
 
   // Create a small test CSV with 5 records
   const createTestCSV = () => {
+    console.log("Creating test CSV file...");
+    
     const headers = [
       "data_start_date",
       "data_end_date",
@@ -35,12 +39,12 @@ const TestUpload = () => {
       "page_views_organic_outside_ebay"
     ].join(",");
 
-    // Generate 5 test records
+    // Generate 5 test records with unique item IDs
     const records = Array(5).fill(null).map((_, i) => [
-      "01/02/2024",
-      "28/02/2024",
+      "2024-02-01",
+      "2024-02-28",
       `Test Product ${i + 1}`,
-      `12345${i}`,
+      `TEST${Date.now()}${i}`, // Ensure unique item IDs
       "100",
       "0.02",
       "1",
@@ -64,8 +68,17 @@ const TestUpload = () => {
     ].join(","));
 
     const csvContent = [headers, ...records].join("\n");
+    console.log("Generated CSV content:", csvContent);
+
     const blob = new Blob([csvContent], { type: "text/csv" });
     const file = new File([blob], "test_upload.csv", { type: "text/csv" });
+
+    console.log("Created test file:", file);
+
+    toast({
+      title: "Test Upload Started",
+      description: "Uploading 5 test records...",
+    });
 
     // Trigger the file input handler
     handleFileInput({ target: { files: [file] } } as any);
