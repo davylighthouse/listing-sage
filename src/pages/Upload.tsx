@@ -6,6 +6,7 @@ import FileInfo from "@/components/csv/FileInfo";
 import UploadInstructions from "@/components/csv/UploadInstructions";
 import { ColumnMappingsManager } from "@/components/ebay/ColumnMappingsManager";
 import { TrackedListingsManager } from "@/components/ebay/TrackedListingsManager";
+import TestUpload from "@/components/csv/TestUpload";
 
 const UploadPage = () => {
   const {
@@ -23,6 +24,10 @@ const UploadPage = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-slide-up">
       <div className="space-y-8">
+        <div className="p-4 bg-white rounded-lg border">
+          <h2 className="text-lg font-medium mb-4">Test Upload</h2>
+          <TestUpload />
+        </div>
         <ColumnMappingsManager />
         <TrackedListingsManager />
       </div>
