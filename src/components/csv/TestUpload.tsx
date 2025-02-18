@@ -39,12 +39,12 @@ const TestUpload = () => {
       "page_views_organic_outside_ebay"
     ].join(",");
 
-    // Generate 5 test records with unique item IDs
+    // Generate simple test records with basic IDs to reduce complexity
     const records = Array(5).fill(null).map((_, i) => [
       "2024-02-01",
       "2024-02-28",
       `Test Product ${i + 1}`,
-      `TEST${Date.now()}${i}`, // Ensure unique item IDs
+      `ITEM${i + 1}`, // Simplified IDs
       "100",
       "0.02",
       "1",
