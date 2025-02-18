@@ -65,7 +65,7 @@ export const useCSVUpload = () => {
       setProcessedData(metrics);
 
       const importBatchId = crypto.randomUUID();
-      const batchSize = 5; // Reduced batch size for testing
+      const batchSize = 5; // Keep small batch size for testing
       let totalSuccessCount = 0;
       let totalErrorCount = 0;
       let allErrors: string[] = [];
@@ -76,7 +76,6 @@ export const useCSVUpload = () => {
         const currentBatch = Math.floor(i / batchSize) + 1;
         
         console.log(`Processing batch ${currentBatch} of ${totalBatches}`);
-        console.log('Batch data:', JSON.stringify(batch, null, 2));
         
         try {
           const { successCount, errorCount, errors } = await uploadBatch(
@@ -96,9 +95,6 @@ export const useCSVUpload = () => {
             variant: "default"
           });
 
-          console.log(`Batch ${currentBatch} results - Success: ${successCount}, Errors: ${errorCount}`);
-          console.log(`Total progress - Success: ${totalSuccessCount}, Errors: ${totalErrorCount}`);
-
           if (errors.length > 0) {
             console.log('Batch errors:', errors);
           }
@@ -106,12 +102,12 @@ export const useCSVUpload = () => {
         } catch (error) {
           console.error(`Failed to process batch ${currentBatch}:`, error);
           totalErrorCount += batch.length;
-          allErrors.push(`Failed to process batch ${currentBatch}: ${error.message}`);
+          allErrors.push(`Failed to process batch ${currentBatch}: ${error instanceof Error ? error.message : 'Unknown error'}`);
           continue;
         }
 
-        // Longer delay between batches for testing
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Small delay between batches to prevent overwhelming the database
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       const successMessage = `Successfully processed ${totalSuccessCount} out of ${metrics.length} listings`;
