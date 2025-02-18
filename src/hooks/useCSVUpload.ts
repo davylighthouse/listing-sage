@@ -65,7 +65,7 @@ export const useCSVUpload = () => {
       setProcessedData(metrics);
 
       const importBatchId = crypto.randomUUID();
-      const batchSize = 5; // Keep small batch size for testing
+      const batchSize = 2; // Reduced batch size for testing
       let totalSuccessCount = 0;
       let totalErrorCount = 0;
       let allErrors: string[] = [];
@@ -107,7 +107,7 @@ export const useCSVUpload = () => {
         }
 
         // Small delay between batches to prevent overwhelming the database
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       const successMessage = `Successfully processed ${totalSuccessCount} out of ${metrics.length} listings`;
