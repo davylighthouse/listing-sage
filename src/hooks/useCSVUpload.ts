@@ -45,6 +45,22 @@ export const useCSVUpload = () => {
       
       console.log('Processing CSV with rows:', rows.length);
       
+      // First, verify that all ebay_item_ids are unique within the CSV
+      const itemIds = new Set<string>();
+      const duplicateIds = new Set<string>();
+      
+      rows.slice(1).forEach(row => {
+        const itemId = row[headers.indexOf('ebay_item_id')];
+        if (itemIds.has(itemId)) {
+          duplicateIds.add(itemId);
+        }
+        itemIds.add(itemId);
+      });
+
+      if (duplicateIds.size > 0) {
+        throw new Error(`Duplicate eBay item IDs found: ${Array.from(duplicateIds).join(', ')}`);
+      }
+      
       // Store headers in raw_data table
       const { error: headerError } = await supabase
         .from('raw_data')
@@ -65,7 +81,7 @@ export const useCSVUpload = () => {
       setProcessedData(metrics);
 
       const importBatchId = crypto.randomUUID();
-      const batchSize = 2; // Reduced batch size for testing
+      const batchSize = 2; // Keeping small batch size for testing
       let totalSuccessCount = 0;
       let totalErrorCount = 0;
       let allErrors: string[] = [];
