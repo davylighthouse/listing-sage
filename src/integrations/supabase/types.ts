@@ -519,6 +519,17 @@ export type Database = {
           weighted_value: number
         }[]
       }
+      upsert_ebay_listing_data: {
+        Args: {
+          p_listings: Json
+          p_user_id: string
+        }
+        Returns: {
+          success: boolean
+          message: string
+          ebay_item_id: string
+        }[]
+      }
       upsert_ebay_listings: {
         Args: {
           listings: Json[]

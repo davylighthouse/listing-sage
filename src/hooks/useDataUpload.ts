@@ -14,56 +14,52 @@ export const useDataUpload = () => {
   const { toast } = useToast();
 
   const uploadBatch = useCallback(async (
-    batch: ListingMetrics[],
+    listings: ListingMetrics[],
     userId: string,
-    fileName: string,
-    importBatchId: string
   ): Promise<UploadResult> => {
+    console.log('Starting upload process for', listings.length, 'listings');
+
     try {
-      const formattedBatch = batch.map(metric => ({
-        user_id: userId,
-        file_name: fileName,
-        import_batch_id: importBatchId,
-        ...metric,
-        data_start_date: new Date(metric.data_start_date).toISOString(),
-        data_end_date: new Date(metric.data_end_date).toISOString(),
-      }));
-
-      console.log('Uploading batch:', formattedBatch);
-
       const { data: results, error } = await supabase.rpc(
-        'upsert_ebay_listings_with_history',
-        { listings: formattedBatch }
+        'upsert_ebay_listing_data',
+        { 
+          p_listings: listings,
+          p_user_id: userId
+        }
       );
 
       if (error) {
-        console.error('Batch upload error:', error);
+        console.error('Upload error:', error);
         throw error;
       }
 
-      if (!results || !Array.isArray(results)) {
-        console.error('Unexpected results format:', results);
+      if (!results) {
+        console.error('No results returned from upload');
         return {
           successCount: 0,
-          errorCount: batch.length,
-          errors: ['Unexpected response format from server']
+          errorCount: listings.length,
+          errors: ['No response from server']
         };
       }
 
-      console.log('Batch upload results:', results);
+      console.log('Upload results:', results);
 
-      const processedResults = results.reduce((acc, result) => ({
-        successCount: acc.successCount + (result.success ? 1 : 0),
-        errorCount: acc.errorCount + (result.success ? 0 : 1),
-        errors: result.success ? acc.errors : [...acc.errors, `Error with item ${result.ebay_item_id}: ${result.message}`]
-      }), { successCount: 0, errorCount: 0, errors: [] as string[] });
+      const successCount = results.filter(r => r.success).length;
+      const errorCount = results.filter(r => !r.success).length;
+      const errors = results
+        .filter(r => !r.success)
+        .map(r => `Error with item ${r.ebay_item_id}: ${r.message}`);
 
-      return processedResults;
+      return {
+        successCount,
+        errorCount,
+        errors
+      };
     } catch (error) {
-      console.error('Upload batch error:', error);
+      console.error('Upload error:', error);
       return {
         successCount: 0,
-        errorCount: batch.length,
+        errorCount: listings.length,
         errors: [error instanceof Error ? error.message : 'Unknown error occurred during upload']
       };
     }

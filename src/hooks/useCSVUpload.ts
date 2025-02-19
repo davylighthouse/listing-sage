@@ -31,6 +31,8 @@ export const useCSVUpload = () => {
 
     try {
       setIsUploading(true);
+      
+      // Read and parse CSV
       const text = await file.text();
       const rows = text.split('\n')
         .map(row => row.split(',').map(cell => cell.trim()))
@@ -44,22 +46,6 @@ export const useCSVUpload = () => {
       }
       
       console.log('Processing CSV with rows:', rows.length);
-      
-      // First, verify that all ebay_item_ids are unique within the CSV
-      const itemIds = new Set<string>();
-      const duplicateIds = new Set<string>();
-      
-      rows.slice(1).forEach(row => {
-        const itemId = row[headers.indexOf('ebay_item_id')];
-        if (itemIds.has(itemId)) {
-          duplicateIds.add(itemId);
-        }
-        itemIds.add(itemId);
-      });
-
-      if (duplicateIds.size > 0) {
-        throw new Error(`Duplicate eBay item IDs found: ${Array.from(duplicateIds).join(', ')}`);
-      }
       
       // Store headers in raw_data table
       const { error: headerError } = await supabase
@@ -75,74 +61,34 @@ export const useCSVUpload = () => {
         throw new Error('Failed to store CSV headers');
       }
       
+      // Process the data
       setPreviewData([headers, ...rows.slice(1, 6)]); 
       const metrics = processCSVData(rows);
-      console.log('Processed metrics:', metrics.length);
+      console.log('Processed metrics:', metrics);
       setProcessedData(metrics);
 
-      const importBatchId = crypto.randomUUID();
-      const batchSize = 2; // Keeping small batch size for testing
-      let totalSuccessCount = 0;
-      let totalErrorCount = 0;
-      let allErrors: string[] = [];
-      const totalBatches = Math.ceil(metrics.length / batchSize);
+      // Upload all data in one batch
+      const { successCount, errorCount, errors } = await uploadBatch(metrics, user.id);
 
-      for (let i = 0; i < metrics.length; i += batchSize) {
-        const batch = metrics.slice(i, i + batchSize);
-        const currentBatch = Math.floor(i / batchSize) + 1;
-        
-        console.log(`Processing batch ${currentBatch} of ${totalBatches}`);
-        
-        try {
-          const { successCount, errorCount, errors } = await uploadBatch(
-            batch,
-            user.id,
-            file.name,
-            importBatchId
-          );
-
-          totalSuccessCount += successCount;
-          totalErrorCount += errorCount;
-          allErrors.push(...errors);
-
-          toast({
-            title: "Upload Progress",
-            description: `Processed ${currentBatch} of ${totalBatches} batches (${Math.round((currentBatch/totalBatches) * 100)}%)`,
-            variant: "default"
-          });
-
-          if (errors.length > 0) {
-            console.log('Batch errors:', errors);
-          }
-
-        } catch (error) {
-          console.error(`Failed to process batch ${currentBatch}:`, error);
-          totalErrorCount += batch.length;
-          allErrors.push(`Failed to process batch ${currentBatch}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          continue;
-        }
-
-        // Small delay between batches to prevent overwhelming the database
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      const successMessage = `Successfully processed ${totalSuccessCount} out of ${metrics.length} listings`;
-      const errorSuffix = totalErrorCount > 0 ? `. ${totalErrorCount} records had errors.` : '';
+      // Show results
+      const successMessage = `Successfully processed ${successCount} out of ${metrics.length} listings`;
+      const errorSuffix = errorCount > 0 ? `. ${errorCount} records had errors.` : '';
       
       toast({
-        title: totalSuccessCount > 0 ? "Upload Complete" : "Upload Failed",
+        title: successCount > 0 ? "Upload Complete" : "Upload Failed",
         description: successMessage + errorSuffix,
-        variant: totalErrorCount === metrics.length ? "destructive" : 
-                totalErrorCount > 0 ? "default" : "default"
+        variant: errorCount === metrics.length ? "destructive" : 
+                errorCount > 0 ? "default" : "default"
       });
 
-      if (allErrors.length > 0) {
-        console.error('Processing errors:', allErrors);
+      if (errors.length > 0) {
+        console.error('Processing errors:', errors);
       }
 
-      if (totalSuccessCount > 0) {
+      if (successCount > 0) {
         navigate('/listings');
       }
+
     } catch (error) {
       console.error('CSV Processing error:', error);
       toast({
