@@ -36,16 +36,30 @@ export const useDataUpload = () => {
         quantity_sold: listing.quantity_sold,
         sales_conversion_rate: listing.sales_conversion_rate,
         total_page_views: listing.total_page_views,
-        page_views_promoted_ebay: listing.page_views_promoted_ebay || 0,
-        page_views_promoted_outside_ebay: listing.page_views_promoted_outside_ebay || 0,
-        page_views_organic_ebay: listing.page_views_organic_ebay || 0,
-        page_views_organic_outside_ebay: listing.page_views_organic_outside_ebay || 0
+        top_20_search_slot_promoted_impressions: listing.top_20_search_slot_promoted_impressions,
+        change_top_20_search_slot_promoted_impressions: listing.change_top_20_search_slot_promoted_impressions,
+        top_20_search_slot_organic_impressions: listing.top_20_search_slot_organic_impressions,
+        change_top_20_search_slot_impressions: listing.change_top_20_search_slot_impressions,
+        rest_of_search_slot_impressions: listing.rest_of_search_slot_impressions,
+        non_search_promoted_listings_impressions: listing.non_search_promoted_listings_impressions,
+        change_non_search_promoted_listings_impressions: listing.change_non_search_promoted_listings_impressions,
+        non_search_organic_impressions: listing.non_search_organic_impressions,
+        change_non_search_organic_impressions: listing.change_non_search_organic_impressions,
+        total_promoted_listings_impressions: listing.total_promoted_listings_impressions,
+        total_organic_impressions_ebay: listing.total_organic_impressions_ebay,
+        page_views_promoted_ebay: listing.page_views_promoted_ebay,
+        page_views_promoted_outside_ebay: listing.page_views_promoted_outside_ebay,
+        page_views_organic_ebay: listing.page_views_organic_ebay,
+        page_views_organic_outside_ebay: listing.page_views_organic_outside_ebay
       }));
 
-      // Insert into ebay_listing_history
+      // Use upsert instead of insert
       const { data: results, error } = await supabase
         .from('ebay_listing_history')
-        .insert(processedListings)
+        .upsert(processedListings, {
+          onConflict: 'user_id,ebay_item_id,data_start_date,data_end_date',
+          ignoreDuplicates: false // Update existing records
+        })
         .select();
 
       if (error) {
@@ -57,8 +71,8 @@ export const useDataUpload = () => {
       const { error: listingsError } = await supabase
         .from('ebay_listings')
         .upsert(
-          processedListings.map(({ ebay_item_id, listing_title }) => ({
-            user_id: userId,
+          processedListings.map(({ ebay_item_id, listing_title, user_id }) => ({
+            user_id,
             ebay_item_id,
             listing_title
           })),
