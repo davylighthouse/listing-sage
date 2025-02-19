@@ -47,6 +47,9 @@ export const useCSVUpload = () => {
       
       console.log('Processing CSV with rows:', rows.length);
       
+      // Generate import batch ID
+      const importBatchId = crypto.randomUUID();
+      
       // Store headers in raw_data table
       const { error: headerError } = await supabase
         .from('raw_data')
