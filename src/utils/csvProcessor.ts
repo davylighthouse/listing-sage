@@ -49,8 +49,8 @@ const parseDate = (dateStr: string): string => {
 };
 
 const validateRow = (row: string[]): boolean => {
-  if (row.length < 10) {
-    console.error('Invalid row length:', { expected: 10, received: row.length });
+  if (row.length < 24) { // Updated to expect all columns
+    console.error('Invalid row length:', { expected: 24, received: row.length });
     return false;
   }
 
@@ -86,21 +86,32 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         quantity_sold: cleanNumericValue(row[6]),
         sales_conversion_rate: cleanPercentage(row[7]),
         total_page_views: cleanNumericValue(row[8]),
-        page_views_promoted_ebay: 0,
-        page_views_promoted_outside_ebay: 0,
-        page_views_organic_ebay: 0,
-        page_views_organic_outside_ebay: 0,
-        total_promoted_listings_impressions: 0,
-        total_organic_impressions_ebay: 0
+        // Additional metrics with their corresponding column indices
+        top_20_search_slot_promoted_impressions: cleanNumericValue(row[9]),
+        change_top_20_search_slot_promoted_impressions: cleanNumericValue(row[10]),
+        top_20_search_slot_organic_impressions: cleanNumericValue(row[11]),
+        change_top_20_search_slot_impressions: cleanNumericValue(row[12]),
+        rest_of_search_slot_impressions: cleanNumericValue(row[13]),
+        non_search_promoted_listings_impressions: cleanNumericValue(row[14]),
+        change_non_search_promoted_listings_impressions: cleanNumericValue(row[15]),
+        non_search_organic_impressions: cleanNumericValue(row[16]),
+        change_non_search_organic_impressions: cleanNumericValue(row[17]),
+        total_promoted_listings_impressions: cleanNumericValue(row[18]),
+        total_organic_impressions_ebay: cleanNumericValue(row[19]),
+        page_views_promoted_ebay: cleanNumericValue(row[20]),
+        page_views_promoted_outside_ebay: cleanNumericValue(row[21]),
+        page_views_organic_ebay: cleanNumericValue(row[22]),
+        page_views_organic_outside_ebay: cleanNumericValue(row[23])
       };
 
+      console.log('Processed metric:', metric);
       metrics.push(metric);
     } catch (error) {
-      console.error('Error processing row:', error);
+      console.error('Error processing row:', error, row);
       continue;
     }
   }
 
-  console.log('Processed metrics:', metrics);
+  console.log('Processed all metrics:', metrics);
   return metrics;
 };
