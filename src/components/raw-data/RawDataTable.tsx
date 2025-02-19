@@ -1,42 +1,13 @@
+
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
-
-interface RawDataEntry {
-  id: string;
-  created_at: string;
-  file_name: string;
-  ebay_item_id: string;
-  listing_title: string;
-  data_start_date: string;
-  data_end_date: string;
-  total_impressions_ebay: number;
-  click_through_rate: number;
-  quantity_sold: number;
-  sales_conversion_rate: number;
-  top_20_search_slot_promoted_impressions: number;
-  change_top_20_search_slot_promoted_impressions: number;
-  top_20_search_slot_organic_impressions: number;
-  change_top_20_search_slot_impressions: number;
-  rest_of_search_slot_impressions: number;
-  non_search_promoted_listings_impressions: number;
-  change_non_search_promoted_listings_impressions: number;
-  non_search_organic_impressions: number;
-  change_non_search_organic_impressions: number;
-  total_promoted_listings_impressions: number;
-  total_organic_impressions_ebay: number;
-  total_page_views: number;
-  page_views_promoted_ebay: number;
-  page_views_promoted_outside_ebay: number;
-  page_views_organic_ebay: number;
-  page_views_organic_outside_ebay: number;
-  import_batch_id: string;
-}
+import { DatabaseListing } from "@/types/listing";
 
 interface RawDataTableProps {
-  data: RawDataEntry[] | undefined;
+  data: DatabaseListing[] | undefined;
   isLoading: boolean;
   selectedEntries: string[];
   onSelectEntry: (id: string) => void;
@@ -45,15 +16,18 @@ interface RawDataTableProps {
 }
 
 const formatDate = (date: string) => {
+  if (!date) return '-';
   return format(new Date(date), 'dd/MM/yyyy');
 };
 
-const formatPercentage = (value: number) => {
-  return `${(value * 100).toFixed(2)}%`;
+const formatNumber = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return '0';
+  return value.toLocaleString('en-US');
 };
 
-const formatNumber = (value: number) => {
-  return value.toLocaleString('en-US');
+const formatPercentage = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return '0%';
+  return `${(value * 100).toFixed(2)}%`;
 };
 
 const RawDataTable = ({
@@ -131,16 +105,16 @@ const RawDataTable = ({
               <TableRow key={entry.id}>
                 <TableCell>
                   <Checkbox
-                    checked={selectedEntries.includes(entry.id)}
-                    onCheckedChange={() => onSelectEntry(entry.id)}
+                    checked={selectedEntries.includes(entry.id || '')}
+                    onCheckedChange={() => onSelectEntry(entry.id || '')}
                   />
                 </TableCell>
-                <TableCell>{formatDate(entry.created_at)}</TableCell>
+                <TableCell>{formatDate(entry.created_at || '')}</TableCell>
                 <TableCell>{entry.file_name}</TableCell>
                 <TableCell>{entry.ebay_item_id}</TableCell>
                 <TableCell>{entry.listing_title}</TableCell>
-                <TableCell>{formatDate(entry.data_start_date)}</TableCell>
-                <TableCell>{formatDate(entry.data_end_date)}</TableCell>
+                <TableCell>{formatDate(entry.data_start_date || '')}</TableCell>
+                <TableCell>{formatDate(entry.data_end_date || '')}</TableCell>
                 <TableCell>{formatNumber(entry.total_impressions_ebay)}</TableCell>
                 <TableCell>{formatPercentage(entry.click_through_rate)}</TableCell>
                 <TableCell>{formatNumber(entry.quantity_sold)}</TableCell>

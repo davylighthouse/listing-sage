@@ -1,5 +1,5 @@
 
-import { ListingMetrics } from "@/types/listing";
+import { DatabaseListing } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
   if (!value || value.trim() === "") return 0;
@@ -49,7 +49,7 @@ const parseDate = (dateStr: string): string => {
 };
 
 const validateRow = (row: string[]): boolean => {
-  if (row.length < 10) { // Updated for our simplified schema
+  if (row.length < 10) {
     console.error('Invalid row length:', { expected: 10, received: row.length });
     return false;
   }
@@ -65,9 +65,9 @@ const validateRow = (row: string[]): boolean => {
   return true;
 };
 
-export const processCSVData = (rows: string[][]): ListingMetrics[] => {
+export const processCSVData = (rows: string[][]): Partial<DatabaseListing>[] => {
   console.log('Processing CSV rows:', rows.length);
-  const metrics: ListingMetrics[] = [];
+  const metrics: Partial<DatabaseListing>[] = [];
   const dataRows = rows.slice(1); // Skip header row
 
   for (const row of dataRows) {
@@ -76,7 +76,7 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
     }
 
     try {
-      const metric: ListingMetrics = {
+      const metric: Partial<DatabaseListing> = {
         data_start_date: parseDate(row[0]),
         data_end_date: parseDate(row[1]),
         listing_title: row[2].trim(),
@@ -85,7 +85,13 @@ export const processCSVData = (rows: string[][]): ListingMetrics[] => {
         click_through_rate: cleanPercentage(row[5]),
         quantity_sold: cleanNumericValue(row[6]),
         sales_conversion_rate: cleanPercentage(row[7]),
-        total_page_views: cleanNumericValue(row[8])
+        total_page_views: cleanNumericValue(row[8]),
+        page_views_promoted_ebay: 0,
+        page_views_promoted_outside_ebay: 0,
+        page_views_organic_ebay: 0,
+        page_views_organic_outside_ebay: 0,
+        total_promoted_listings_impressions: 0,
+        total_organic_impressions_ebay: 0
       };
 
       metrics.push(metric);
