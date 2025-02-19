@@ -96,132 +96,12 @@ export type Database = {
         }
         Relationships: []
       }
-      ebay_listing_history: {
-        Row: {
-          change_non_search_organic_impressions: number | null
-          change_non_search_promoted_listings_impressions: number | null
-          change_top_20_search_slot_impressions: number | null
-          change_top_20_search_slot_promoted_impressions: number | null
-          click_through_rate: number | null
-          created_at: string
-          data_end_date: string
-          data_start_date: string
-          ebay_item_id: string
-          file_name: string | null
-          id: string
-          import_batch_id: string | null
-          non_search_organic_impressions: number | null
-          non_search_promoted_listings_impressions: number | null
-          page_views_organic_ebay: number | null
-          page_views_organic_outside_ebay: number | null
-          page_views_promoted_ebay: number | null
-          page_views_promoted_outside_ebay: number | null
-          quantity_sold: number | null
-          rest_of_search_slot_impressions: number | null
-          sales_conversion_rate: number | null
-          top_20_search_slot_organic_impressions: number | null
-          top_20_search_slot_promoted_impressions: number | null
-          total_impressions_ebay: number | null
-          total_organic_impressions_ebay: number | null
-          total_page_views: number | null
-          total_promoted_listings_impressions: number | null
-          user_id: string
-        }
-        Insert: {
-          change_non_search_organic_impressions?: number | null
-          change_non_search_promoted_listings_impressions?: number | null
-          change_top_20_search_slot_impressions?: number | null
-          change_top_20_search_slot_promoted_impressions?: number | null
-          click_through_rate?: number | null
-          created_at?: string
-          data_end_date: string
-          data_start_date: string
-          ebay_item_id: string
-          file_name?: string | null
-          id?: string
-          import_batch_id?: string | null
-          non_search_organic_impressions?: number | null
-          non_search_promoted_listings_impressions?: number | null
-          page_views_organic_ebay?: number | null
-          page_views_organic_outside_ebay?: number | null
-          page_views_promoted_ebay?: number | null
-          page_views_promoted_outside_ebay?: number | null
-          quantity_sold?: number | null
-          rest_of_search_slot_impressions?: number | null
-          sales_conversion_rate?: number | null
-          top_20_search_slot_organic_impressions?: number | null
-          top_20_search_slot_promoted_impressions?: number | null
-          total_impressions_ebay?: number | null
-          total_organic_impressions_ebay?: number | null
-          total_page_views?: number | null
-          total_promoted_listings_impressions?: number | null
-          user_id: string
-        }
-        Update: {
-          change_non_search_organic_impressions?: number | null
-          change_non_search_promoted_listings_impressions?: number | null
-          change_top_20_search_slot_impressions?: number | null
-          change_top_20_search_slot_promoted_impressions?: number | null
-          click_through_rate?: number | null
-          created_at?: string
-          data_end_date?: string
-          data_start_date?: string
-          ebay_item_id?: string
-          file_name?: string | null
-          id?: string
-          import_batch_id?: string | null
-          non_search_organic_impressions?: number | null
-          non_search_promoted_listings_impressions?: number | null
-          page_views_organic_ebay?: number | null
-          page_views_organic_outside_ebay?: number | null
-          page_views_promoted_ebay?: number | null
-          page_views_promoted_outside_ebay?: number | null
-          quantity_sold?: number | null
-          rest_of_search_slot_impressions?: number | null
-          sales_conversion_rate?: number | null
-          top_20_search_slot_organic_impressions?: number | null
-          top_20_search_slot_promoted_impressions?: number | null
-          total_impressions_ebay?: number | null
-          total_organic_impressions_ebay?: number | null
-          total_page_views?: number | null
-          total_promoted_listings_impressions?: number | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ebay_listing"
-            columns: ["user_id", "ebay_item_id"]
-            isOneToOne: false
-            referencedRelation: "ebay_listings"
-            referencedColumns: ["user_id", "ebay_item_id"]
-          },
-          {
-            foreignKeyName: "fk_ebay_listing_history_ebay_item"
-            columns: ["ebay_item_id"]
-            isOneToOne: false
-            referencedRelation: "ebay_listings"
-            referencedColumns: ["ebay_item_id"]
-          },
-        ]
-      }
       ebay_listings: {
         Row: {
           created_at: string
           ebay_item_id: string
           id: string
-          image_url: string | null
-          last_rank_update: string | null
           listing_title: string
-          performance_score: number | null
-          previous_period_impressions: number | null
-          previous_period_revenue: number | null
-          previous_period_sales: number | null
-          previous_rank: number | null
-          quantity_sold: number | null
-          rank_by_conversion: number | null
-          rank_by_impressions: number | null
-          rank_by_sales: number | null
-          rank_change: number | null
           updated_at: string
           user_id: string
         }
@@ -229,19 +109,7 @@ export type Database = {
           created_at?: string
           ebay_item_id: string
           id?: string
-          image_url?: string | null
-          last_rank_update?: string | null
           listing_title: string
-          performance_score?: number | null
-          previous_period_impressions?: number | null
-          previous_period_revenue?: number | null
-          previous_period_sales?: number | null
-          previous_rank?: number | null
-          quantity_sold?: number | null
-          rank_by_conversion?: number | null
-          rank_by_impressions?: number | null
-          rank_by_sales?: number | null
-          rank_change?: number | null
           updated_at?: string
           user_id: string
         }
@@ -249,19 +117,7 @@ export type Database = {
           created_at?: string
           ebay_item_id?: string
           id?: string
-          image_url?: string | null
-          last_rank_update?: string | null
           listing_title?: string
-          performance_score?: number | null
-          previous_period_impressions?: number | null
-          previous_period_revenue?: number | null
-          previous_period_sales?: number | null
-          previous_rank?: number | null
-          quantity_sold?: number | null
-          rank_by_conversion?: number | null
-          rank_by_impressions?: number | null
-          rank_by_sales?: number | null
-          rank_change?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -296,6 +152,48 @@ export type Database = {
           listing_title?: string | null
           status?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      listing_metrics: {
+        Row: {
+          click_through_rate: number | null
+          created_at: string
+          data_end_date: string
+          data_start_date: string
+          ebay_item_id: string
+          id: string
+          quantity_sold: number | null
+          sales_conversion_rate: number | null
+          total_impressions_ebay: number | null
+          total_page_views: number | null
+          user_id: string
+        }
+        Insert: {
+          click_through_rate?: number | null
+          created_at?: string
+          data_end_date: string
+          data_start_date: string
+          ebay_item_id: string
+          id?: string
+          quantity_sold?: number | null
+          sales_conversion_rate?: number | null
+          total_impressions_ebay?: number | null
+          total_page_views?: number | null
+          user_id: string
+        }
+        Update: {
+          click_through_rate?: number | null
+          created_at?: string
+          data_end_date?: string
+          data_start_date?: string
+          ebay_item_id?: string
+          id?: string
+          quantity_sold?: number | null
+          sales_conversion_rate?: number | null
+          total_impressions_ebay?: number | null
+          total_page_views?: number | null
           user_id?: string
         }
         Relationships: []
@@ -346,22 +244,7 @@ export type Database = {
           total_page_views?: number | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_listing"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "ebay_listings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "listing_rank_history_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "ebay_listings"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       metric_priorities: {
         Row: {
@@ -414,13 +297,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_product_listings_ebay_listings"
-            columns: ["ebay_item_id"]
-            isOneToOne: false
-            referencedRelation: "ebay_listings"
-            referencedColumns: ["ebay_item_id"]
-          },
-          {
             foreignKeyName: "fk_product_listings_products"
             columns: ["product_id"]
             isOneToOne: false
@@ -469,33 +345,6 @@ export type Database = {
         }
         Relationships: []
       }
-      raw_data: {
-        Row: {
-          created_at: string
-          file_name: string
-          headers: string[]
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          file_name: string
-          headers: string[]
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          file_name?: string
-          headers?: string[]
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -517,6 +366,17 @@ export type Database = {
           priority: number
           weight: number
           weighted_value: number
+        }[]
+      }
+      import_listing_data: {
+        Args: {
+          p_user_id: string
+          p_data: Json
+        }
+        Returns: {
+          success: boolean
+          message: string
+          ebay_item_id: string
         }[]
       }
       upsert_ebay_listing_data: {
