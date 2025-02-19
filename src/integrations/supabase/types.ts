@@ -206,7 +206,6 @@ export type Database = {
       }
       ebay_listings: {
         Row: {
-          average_price: number | null
           created_at: string
           ebay_item_id: string
           id: string
@@ -223,12 +222,10 @@ export type Database = {
           rank_by_impressions: number | null
           rank_by_sales: number | null
           rank_change: number | null
-          revenue: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          average_price?: number | null
           created_at?: string
           ebay_item_id: string
           id?: string
@@ -245,12 +242,10 @@ export type Database = {
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
           rank_change?: number | null
-          revenue?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          average_price?: number | null
           created_at?: string
           ebay_item_id?: string
           id?: string
@@ -267,7 +262,6 @@ export type Database = {
           rank_by_impressions?: number | null
           rank_by_sales?: number | null
           rank_change?: number | null
-          revenue?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -533,13 +527,10 @@ export type Database = {
       }
       upsert_ebay_listings_with_history: {
         Args: {
-          listings: Json[]
+          listings: Json
+          current_user_id: string
         }
-        Returns: {
-          success: boolean
-          message: string
-          ebay_item_id: string
-        }[]
+        Returns: undefined
       }
     }
     Enums: {
