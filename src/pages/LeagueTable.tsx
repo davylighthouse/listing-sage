@@ -20,24 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface LeagueTableEntry {
-  id: string;
-  rank_by_sales: number;
-  previous_rank: number | null;
-  rank_change: number | null;
-  listing_title: string;
-  ebay_item_id: string;
-  quantity_sold: number;
-  total_impressions_ebay: number;
-  click_through_rate: number;
-  total_page_views: number;
-  sales_conversion_rate: number;
-  page_views_promoted_ebay: number;
-  page_views_promoted_outside_ebay: number;
-}
+import { LeagueTableEntry } from "@/types/listing";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const LeagueTable = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("rank_by_sales");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -45,47 +34,68 @@ const LeagueTable = () => {
   const [rankCriteria, setRankCriteria] = useState("quantity_sold");
 
   const { data: listings, isLoading } = useQuery({
-    queryKey: ["leagueTable", sortBy, sortOrder, timeframe, rankCriteria],
+    queryKey: ["leagueTable", sortBy, sortOrder, timeframe, rankCriteria, user?.id],
     queryFn: async () => {
-      // Get base listings with ranking info
-      const { data: baseListings, error: baseError } = await supabase
-        .from("ebay_listings")
-        .select("*")
-        .order(rankCriteria, { ascending: false });
+      if (!user?.id) throw new Error("User not authenticated");
 
-      if (baseError) throw baseError;
+      // Get the latest metrics for each listing
+      const { data: metrics, error } = await supabase
+        .from("ebay_listing_history")
+        .select(`
+          id,
+          ebay_item_id,
+          listing_title,
+          quantity_sold,
+          total_impressions_ebay,
+          click_through_rate,
+          total_page_views,
+          sales_conversion_rate,
+          page_views_promoted_ebay,
+          page_views_promoted_outside_ebay,
+          rank_by_sales,
+          previous_rank,
+          rank_change,
+          data_end_date
+        `)
+        .eq('user_id', user.id)
+        .order('data_end_date', { ascending: false });
 
-      // Get latest metrics for each listing
-      const listingsWithMetrics = await Promise.all(
-        (baseListings || []).map(async (listing) => {
-          const { data: metrics, error: metricsError } = await supabase
-            .from("ebay_listing_history")
-            .select("*")
-            .eq("ebay_item_id", listing.ebay_item_id)
-            .order("data_end_date", { ascending: false })
-            .limit(1)
-            .single();
+      if (error) {
+        console.error("Error fetching metrics:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load league table data",
+          variant: "destructive",
+        });
+        throw error;
+      }
 
-          if (metricsError) {
-            console.error("Error fetching metrics:", metricsError);
-            return {
-              ...listing,
-              quantity_sold: 0,
-              total_impressions_ebay: 0,
-              click_through_rate: 0,
-              total_page_views: 0,
-              sales_conversion_rate: 0,
-              page_views_promoted_ebay: 0,
-              page_views_promoted_outside_ebay: 0,
-            };
-          }
+      // Group by ebay_item_id and take the latest entry for each
+      const latestMetrics = metrics.reduce((acc: Record<string, any>, curr) => {
+        if (!acc[curr.ebay_item_id] || 
+            new Date(curr.data_end_date) > new Date(acc[curr.ebay_item_id].data_end_date)) {
+          acc[curr.ebay_item_id] = curr;
+        }
+        return acc;
+      }, {});
 
-          return { ...listing, ...metrics };
+      // Convert to array and sort by the selected criteria
+      const sortedMetrics = Object.values(latestMetrics)
+        .sort((a: any, b: any) => {
+          const aValue = a[rankCriteria] || 0;
+          const bValue = b[rankCriteria] || 0;
+          return sortOrder === "desc" ? bValue - aValue : aValue - bValue;
         })
-      );
+        .map((metric: any, index: number) => ({
+          ...metric,
+          rank_by_sales: index + 1,
+          previous_rank: metric.previous_rank || index + 1,
+          rank_change: metric.previous_rank ? (index + 1) - metric.previous_rank : 0
+        }));
 
-      return listingsWithMetrics as LeagueTableEntry[];
+      return sortedMetrics as LeagueTableEntry[];
     },
+    enabled: !!user?.id,
   });
 
   const formatValue = (value: number, type: "percentage" | "number" = "number") => {
