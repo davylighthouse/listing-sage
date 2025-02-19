@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { RawDataEntry } from "@/types/listing";
 import ImportedFilesTable from "@/components/raw-data/ImportedFilesTable";
 import RawDataTable from "@/components/raw-data/RawDataTable";
 
@@ -12,14 +12,10 @@ const RawDataPage = () => {
   const { user } = useAuth();
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
 
-  // Query for imported files summary
   const { data: importedFiles, isLoading: filesLoading, error: filesError, refetch: refetchFiles } = useQuery({
     queryKey: ["imported-files", user?.id],
     queryFn: async () => {
-      if (!user?.id) {
-        console.error("User not authenticated");
-        throw new Error("User not authenticated");
-      }
+      if (!user?.id) throw new Error("User not authenticated");
 
       const { data, error } = await supabase
         .from('ebay_listing_history')
@@ -27,10 +23,7 @@ const RawDataPage = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching files:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       // Group by import batch and count records
       const filesSummary = data.reduce((acc: Record<string, any>, curr) => {
@@ -52,24 +45,11 @@ const RawDataPage = () => {
     enabled: !!user?.id,
   });
 
-  // Query for raw data entries
   const { data: rawData, isLoading: dataLoading, error: dataError, refetch: refetchData } = useQuery({
     queryKey: ["raw-data", user?.id],
     queryFn: async () => {
-      if (!user?.id) {
-        console.error("User not authenticated");
-        throw new Error("User not authenticated");
-      }
+      if (!user?.id) throw new Error("User not authenticated");
 
-      // First get all ebay listings
-      const { data: listings, error: listingsError } = await supabase
-        .from('ebay_listings')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (listingsError) throw listingsError;
-
-      // Then get the history data
       const { data: history, error: historyError } = await supabase
         .from('ebay_listing_history')
         .select('*')
@@ -78,21 +58,11 @@ const RawDataPage = () => {
 
       if (historyError) throw historyError;
 
-      // Merge the data
-      const mergedData = history.map(historyEntry => {
-        const listing = listings.find(l => l.ebay_item_id === historyEntry.ebay_item_id);
-        return {
-          ...historyEntry,
-          listing_title: listing?.listing_title || 'Unknown Listing'
-        };
-      });
-
-      return mergedData;
+      return history as RawDataEntry[];
     },
     enabled: !!user?.id,
   });
 
-  // Display any errors
   if (filesError || dataError) {
     const error = filesError || dataError;
     console.error("Query error:", error);

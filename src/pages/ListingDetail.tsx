@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { DatabaseListing } from "@/types/listing";
 
 const ListingDetail = () => {
   const { itemId } = useParams();
@@ -12,23 +13,9 @@ const ListingDetail = () => {
   const { data: listingData, isLoading } = useQuery({
     queryKey: ["listing-detail", itemId],
     queryFn: async () => {
-      // First get the base listing info
-      const { data: listing, error: listingError } = await supabase
-        .from("ebay_listings")
-        .select("*")
-        .eq("ebay_item_id", itemId)
-        .single();
+      if (!itemId) throw new Error("No item ID provided");
 
-      if (listingError) {
-        toast({
-          title: "Error",
-          description: "Failed to load listing details",
-          variant: "destructive",
-        });
-        throw listingError;
-      }
-
-      // Then get the latest metrics
+      // Get the latest metrics
       const { data: metrics, error: metricsError } = await supabase
         .from("ebay_listing_history")
         .select("*")
@@ -46,7 +33,7 @@ const ListingDetail = () => {
         throw metricsError;
       }
 
-      return { ...listing, ...metrics };
+      return metrics as DatabaseListing;
     },
   });
 
@@ -75,7 +62,8 @@ const ListingDetail = () => {
     return format(new Date(date), 'dd/MM/yyyy');
   };
 
-  const formatNumber = (value: number) => {
+  const formatNumber = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return '0';
     return value.toLocaleString('en-US');
   };
 
@@ -111,12 +99,12 @@ const ListingDetail = () => {
           <h3 className="font-medium mb-2">Search Performance</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Total Promoted Impressions</span>
-              <span>{formatNumber(listingData.total_promoted_listings_impressions || 0)}</span>
+              <span className="text-gray-600">Promoted Slot Impressions</span>
+              <span>{formatNumber(listingData.top_20_search_slot_promoted_impressions)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Total Organic Impressions</span>
-              <span>{formatNumber(listingData.total_organic_impressions_ebay || 0)}</span>
+              <span className="text-gray-600">Organic Slot Impressions</span>
+              <span>{formatNumber(listingData.top_20_search_slot_organic_impressions)}</span>
             </div>
           </div>
         </div>
@@ -130,11 +118,11 @@ const ListingDetail = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Organic eBay Views</span>
-              <span>{formatNumber(listingData.page_views_organic_ebay || 0)}</span>
+              <span>{formatNumber(listingData.page_views_organic_ebay)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Promoted eBay Views</span>
-              <span>{formatNumber(listingData.page_views_promoted_ebay || 0)}</span>
+              <span>{formatNumber(listingData.page_views_promoted_ebay)}</span>
             </div>
           </div>
         </div>
