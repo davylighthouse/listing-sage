@@ -1,5 +1,5 @@
 
-import { DatabaseListing } from "@/types/listing";
+import { ListingMetrics } from "@/types/listing";
 
 const cleanNumericValue = (value: string): number => {
   if (!value || value.trim() === "") return 0;
@@ -65,9 +65,9 @@ const validateRow = (row: string[]): boolean => {
   return true;
 };
 
-export const processCSVData = (rows: string[][]): Partial<DatabaseListing>[] => {
+export const processCSVData = (rows: string[][]): ListingMetrics[] => {
   console.log('Processing CSV rows:', rows.length);
-  const metrics: Partial<DatabaseListing>[] = [];
+  const metrics: ListingMetrics[] = [];
   const dataRows = rows.slice(1); // Skip header row
 
   for (const row of dataRows) {
@@ -76,11 +76,11 @@ export const processCSVData = (rows: string[][]): Partial<DatabaseListing>[] => 
     }
 
     try {
-      const metric: Partial<DatabaseListing> = {
+      const metric: ListingMetrics = {
+        ebay_item_id: row[3].trim(),
+        listing_title: row[2].trim(),
         data_start_date: parseDate(row[0]),
         data_end_date: parseDate(row[1]),
-        listing_title: row[2].trim(),
-        ebay_item_id: row[3].trim(),
         total_impressions_ebay: cleanNumericValue(row[4]),
         click_through_rate: cleanPercentage(row[5]),
         quantity_sold: cleanNumericValue(row[6]),

@@ -1,3 +1,4 @@
+
 export interface ListingMetrics {
   id?: string;
   user_id?: string;
@@ -26,8 +27,8 @@ export interface ListingMetrics {
 }
 
 export interface DatabaseListing extends ListingMetrics {
-  total_promoted_listings_impressions: number;
-  total_organic_impressions_ebay: number;
+  id: string;
+  user_id: string;
   top_20_search_slot_promoted_impressions: number;
   change_top_20_search_slot_promoted_impressions: number;
   top_20_search_slot_organic_impressions: number;
@@ -37,6 +38,9 @@ export interface DatabaseListing extends ListingMetrics {
   change_non_search_promoted_listings_impressions: number;
   non_search_organic_impressions: number;
   change_non_search_organic_impressions: number;
+  file_name: string;
+  created_at: string;
+  import_batch_id: string;
 }
 
 export interface LeagueTableEntry extends ListingMetrics {

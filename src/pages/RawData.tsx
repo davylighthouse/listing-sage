@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { RawDataEntry } from "@/types/listing";
+import { DatabaseListing } from "@/types/listing";
 import ImportedFilesTable from "@/components/raw-data/ImportedFilesTable";
 import RawDataTable from "@/components/raw-data/RawDataTable";
 
@@ -58,7 +58,7 @@ const RawDataPage = () => {
 
       if (historyError) throw historyError;
 
-      return history as RawDataEntry[];
+      return history as DatabaseListing[];
     },
     enabled: !!user?.id,
   });
