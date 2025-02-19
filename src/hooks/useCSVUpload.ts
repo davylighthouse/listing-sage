@@ -5,7 +5,7 @@ import { useToast } from "./use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { processCSVData } from "@/utils/csvProcessor";
 import { validateCSVFormat } from "@/utils/csvValidation";
-import { ListingMetrics } from "@/types/listing";
+import { ListingMetrics, UploadStatus, UploadError } from "@/types/listing";
 import { useAuth } from "./useAuth";
 import { useFileHandling } from "./useFileHandling";
 import { useDataUpload } from "./useDataUpload";
@@ -17,6 +17,7 @@ export const useCSVUpload = () => {
   const [previewData, setPreviewData] = useState<string[][]>([]);
   const [processedData, setProcessedData] = useState<ListingMetrics[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
   const { uploadBatch } = useDataUpload();
 
   const processCSV = useCallback(async (file: File) => {
@@ -31,6 +32,13 @@ export const useCSVUpload = () => {
 
     try {
       setIsUploading(true);
+      setUploadStatus({
+        total: 0,
+        processed: 0,
+        succeeded: 0,
+        failed: 0,
+        errors: []
+      });
       
       // Read and parse CSV
       const text = await file.text();
@@ -44,6 +52,11 @@ export const useCSVUpload = () => {
       if (rows.length <= 1) {
         throw new Error('No valid data rows found in the CSV file');
       }
+      
+      setUploadStatus(prev => prev ? {
+        ...prev,
+        total: rows.length - 1 // Exclude header row
+      } : null);
       
       console.log('Processing CSV with rows:', rows.length);
       
@@ -61,6 +74,12 @@ export const useCSVUpload = () => {
 
       if (headerError) {
         console.error('Error storing headers:', headerError);
+        setUploadStatus(prev => prev ? {
+          ...prev,
+          errors: [...prev.errors, {
+            message: 'Failed to store CSV headers: ' + headerError.message
+          }]
+        } : null);
         throw new Error('Failed to store CSV headers');
       }
       
@@ -73,7 +92,16 @@ export const useCSVUpload = () => {
       // Upload all data in one batch
       const { successCount, errorCount, errors } = await uploadBatch(metrics, user.id);
 
-      // Show results
+      // Update status with final results
+      setUploadStatus(prev => prev ? {
+        ...prev,
+        processed: metrics.length,
+        succeeded: successCount,
+        failed: errorCount,
+        errors: [...prev.errors, ...errors.map(error => ({ message: error }))]
+      } : null);
+
+      // Show results toast
       const successMessage = `Successfully processed ${successCount} out of ${metrics.length} listings`;
       const errorSuffix = errorCount > 0 ? `. ${errorCount} records had errors.` : '';
       
@@ -94,6 +122,13 @@ export const useCSVUpload = () => {
 
     } catch (error) {
       console.error('CSV Processing error:', error);
+      setUploadStatus(prev => prev ? {
+        ...prev,
+        errors: [...prev.errors, {
+          message: error instanceof Error ? error.message : "Unknown error occurred"
+        }]
+      } : null);
+      
       toast({
         title: "Error processing file",
         description: error instanceof Error ? error.message : "Failed to process CSV file. Please ensure it matches the expected format.",
@@ -111,6 +146,7 @@ export const useCSVUpload = () => {
     isUploading,
     previewData,
     processedData,
+    uploadStatus,
     handleDrop: (e: React.DragEvent) => fileHandling.handleDrop(e, processCSV),
     handleFileInput: (e: React.ChangeEvent<HTMLInputElement>) => fileHandling.handleFileInput(e, processCSV)
   };

@@ -6,6 +6,7 @@ import FileInfo from "@/components/csv/FileInfo";
 import UploadInstructions from "@/components/csv/UploadInstructions";
 import { ColumnMappingsManager } from "@/components/ebay/ColumnMappingsManager";
 import { TrackedListingsManager } from "@/components/ebay/TrackedListingsManager";
+import { UploadErrorBreakdown } from "@/components/csv/UploadErrorBreakdown";
 import TestUpload from "@/components/csv/TestUpload";
 
 const UploadPage = () => {
@@ -15,6 +16,7 @@ const UploadPage = () => {
     file,
     previewData,
     processedData,
+    uploadStatus,
     handleDragOver,
     handleDragLeave,
     handleDrop,
@@ -43,6 +45,8 @@ const UploadPage = () => {
           onDrop={handleDrop}
           onFileInput={handleFileInput}
         />
+
+        <UploadErrorBreakdown status={uploadStatus} />
 
         {file && (
           <FileInfo file={file} processedCount={processedData.length} />

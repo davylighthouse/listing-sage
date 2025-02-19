@@ -1,4 +1,3 @@
-
 export interface ListingMetrics {
   id?: string;
   user_id?: string;
@@ -55,4 +54,19 @@ export interface LeagueTableEntry extends ListingMetrics {
   rank_by_sales: number;
   previous_rank: number;
   rank_change: number;
+}
+
+export interface UploadError {
+  itemId?: string;
+  field?: string;
+  message: string;
+  row?: number;
+}
+
+export interface UploadStatus {
+  total: number;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  errors: UploadError[];
 }
