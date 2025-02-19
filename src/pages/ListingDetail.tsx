@@ -111,12 +111,12 @@ const ListingDetail = () => {
           <h3 className="font-medium mb-2">Search Performance</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-600">Top 20 Search Promoted</span>
-              <span>{formatNumber(listingData.top_20_search_slot_promoted_impressions)}</span>
+              <span className="text-gray-600">Total Promoted Impressions</span>
+              <span>{formatNumber(listingData.total_promoted_listings_impressions || 0)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Top 20 Search Organic</span>
-              <span>{formatNumber(listingData.top_20_search_slot_organic_impressions)}</span>
+              <span className="text-gray-600">Total Organic Impressions</span>
+              <span>{formatNumber(listingData.total_organic_impressions_ebay || 0)}</span>
             </div>
           </div>
         </div>
@@ -130,11 +130,11 @@ const ListingDetail = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Organic eBay Views</span>
-              <span>{formatNumber(listingData.page_views_organic_ebay)}</span>
+              <span>{formatNumber(listingData.page_views_organic_ebay || 0)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Promoted eBay Views</span>
-              <span>{formatNumber(listingData.page_views_promoted_ebay)}</span>
+              <span>{formatNumber(listingData.page_views_promoted_ebay || 0)}</span>
             </div>
           </div>
         </div>
